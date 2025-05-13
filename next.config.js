@@ -8,9 +8,7 @@ const nextConfig = {
   // Add Vercel-specific optimizations
   swcMinify: true,
   poweredByHeader: false,
-  compress: true,
-  // Handle output correctly for Vercel deployment
-  output: 'standalone'
+  compress: true
 };
 
 module.exports = nextConfig;
