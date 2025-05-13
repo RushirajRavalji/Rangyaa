@@ -3,11 +3,14 @@ const nextConfig = {
   reactStrictMode: true,
   images: {
     domains: ['images.unsplash.com'],
+    unoptimized: process.env.NODE_ENV === 'development'
   },
   // Add Vercel-specific optimizations
   swcMinify: true,
   poweredByHeader: false,
-  compress: true
+  compress: true,
+  // Handle output correctly for Vercel deployment
+  output: 'standalone'
 };
 
 module.exports = nextConfig;
