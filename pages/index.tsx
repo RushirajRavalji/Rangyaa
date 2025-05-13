@@ -159,7 +159,7 @@ export default function Home() {
                   <div className="product-rating">
                     <div className="stars">
                       {[...Array(5)].map((_, index) => (
-                        <span key={index} className={index < Math.floor(quickViewProduct.rating) ? "star filled" : "star"}>
+                        <span key={index} className={index < Math.floor(quickViewProduct.rating || 0) ? "star filled" : "star"}>
                           ★
                         </span>
                       ))}
@@ -270,4 +270,4 @@ export default function Home() {
       )}
     </Layout>
   );
-} 
+}
