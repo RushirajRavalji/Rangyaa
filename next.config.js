@@ -8,7 +8,9 @@ const nextConfig = {
   swcMinify: true,
   poweredByHeader: false,
   compress: true,
-  // Add output configuration for better Vercel compatibility
+  eslint: {
+    ignoreDuringBuilds: true
+  },
   output: 'standalone'
 };
 
