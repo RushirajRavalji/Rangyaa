@@ -5,10 +5,11 @@ const nextConfig = {
     domains: ['images.unsplash.com'],
     unoptimized: process.env.NODE_ENV === 'development'
   },
-  // Add Vercel-specific optimizations
   swcMinify: true,
   poweredByHeader: false,
-  compress: true
+  compress: true,
+  // Add output configuration for better Vercel compatibility
+  output: 'standalone'
 };
 
 module.exports = nextConfig;

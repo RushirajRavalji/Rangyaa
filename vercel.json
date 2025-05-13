@@ -1,4 +1,13 @@
 {
   "version": 2,
-  "buildCommand": "node vercel-build.js"
+  "framework": "nextjs",
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/next"
+    }
+  ],
+  "env": {
+    "NODE_ENV": "production"
+  }
 }
