@@ -1,0 +1,181 @@
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.sizeGuideModal {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+  width: 100%;
+  max-width: 800px;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+}
+
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 1px solid #eee;
+}
+
+.modalHeader h2 {
+  font-size: 1.5rem;
+  margin: 0;
+  color: var(--primary-color);
+}
+
+.closeButton {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  color: #666;
+  transition: color 0.3s;
+}
+
+.closeButton:hover {
+  color: var(--accent-color);
+}
+
+.modalContent {
+  padding: 20px;
+}
+
+.unitToggle {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1px solid #eee;
+}
+
+.unitButton {
+  padding: 10px 20px;
+  border: none;
+  background-color: #f9f9f9;
+  cursor: pointer;
+  flex: 1;
+  font-weight: 500;
+  transition: all 0.3s;
+}
+
+.unitButton.active {
+  background-color: var(--accent-color);
+  color: white;
+}
+
+.sizeTable {
+  margin-bottom: 30px;
+  overflow-x: auto;
+}
+
+.sizeTable table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.sizeTable th {
+  background-color: #f9f9f9;
+  padding: 12px;
+  text-align: left;
+  font-weight: 600;
+  color: var(--primary-color);
+  border-bottom: 2px solid #eee;
+}
+
+.sizeTable td {
+  padding: 12px;
+  border-bottom: 1px solid #eee;
+}
+
+.sizeTable tr:hover {
+  background-color: #f9f9f9;
+}
+
+.measurementGuide {
+  margin-bottom: 20px;
+}
+
+.measurementGuide h3 {
+  font-size: 1.2rem;
+  margin-bottom: 15px;
+  color: var(--primary-color);
+}
+
+.measurementSteps {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.measurementStep {
+  line-height: 1.6;
+}
+
+.measurementStep strong {
+  color: var(--accent-color);
+}
+
+.sizeNote {
+  padding: 15px;
+  background-color: #f9f9f9;
+  border-radius: 4px;
+  font-style: italic;
+  color: #666;
+  margin-top: 20px;
+}
+
+@media (max-width: 768px) {
+  .sizeGuideModal {
+    width: 95%;
+  }
+  
+  .modalHeader {
+    padding: 15px;
+  }
+  
+  .modalHeader h2 {
+    font-size: 1.3rem;
+  }
+  
+  .modalContent {
+    padding: 15px;
+  }
+  
+  .sizeTable th,
+  .sizeTable td {
+    padding: 10px 8px;
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .unitButton {
+    padding: 8px 15px;
+    font-size: 0.9rem;
+  }
+  
+  .sizeTable th,
+  .sizeTable td {
+    padding: 8px 6px;
+    font-size: 0.85rem;
+  }
+  
+  .measurementStep {
+    font-size: 0.9rem;
+  }
+} 

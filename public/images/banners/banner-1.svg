@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg width="1200" height="400" xmlns="http://www.w3.org/2000/svg">
+  <rect width="100%" height="100%" fill="#3b82f6"/>
+  <text x="50%" y="45%" font-family="Arial" font-size="32" fill="white" text-anchor="middle" dominant-baseline="middle" font-weight="bold" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">Nikhil's Jeans</text>
+  <text x="50%" y="55%" font-family="Arial" font-size="18" fill="white" text-anchor="middle" dominant-baseline="middle">Banner 1</text>
+  <text x="50%" y="65%" font-family="Arial" font-size="14" fill="white" text-anchor="middle" dominant-baseline="middle">1200x400</text>
+</svg>

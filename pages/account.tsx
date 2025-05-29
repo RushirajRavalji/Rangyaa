@@ -85,6 +85,12 @@ const AccountPage = () => {
                   <FaKey />
                   Change Password
                 </Link>
+                {user.email === 'driger.ray.dranzer@gmail.com' && (
+                  <Link href="/admin/orders" className={styles.accountNavLink} style={{ color: '#0a2472', fontWeight: 600 }}>
+                    <FaUser />
+                    Admin Panel
+                  </Link>
+                )}
                 <button onClick={handleLogout} className={styles.accountNavLink}>
                   <FaSignOutAlt />
                   Logout

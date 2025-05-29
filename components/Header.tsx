@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { FaSearch, FaUser, FaShoppingBag, FaGlobe, FaChevronRight, FaHeart, FaSignOutAlt } from 'react-icons/fa';
+import { FaSearch, FaUser, FaShoppingBag, FaGlobe, FaChevronRight, FaHeart, FaSignOutAlt, FaHome, FaTshirt, FaBoxOpen } from 'react-icons/fa';
 import { navigation } from '../data/navigation';
 import styles from '../styles/Header.module.css';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
+import Search from './Search';
 
 const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -116,7 +117,7 @@ const Header = () => {
               </div>
             </div>
             <button 
-              className={styles.iconLink} 
+              className={`${styles.iconLink} ${styles.tapHighlight}`} 
               aria-label="Search"
               onClick={toggleSearch}
             >
@@ -124,7 +125,7 @@ const Header = () => {
             </button>
             
             <div className={styles.userDropdown}>
-              <Link href="/account" className={styles.iconLink} aria-label="Account">
+              <Link href="/account" className={`${styles.iconLink} ${styles.tapHighlight}`} aria-label="Account">
                 <FaUser />
               </Link>
               <div className={styles.dropdownContent}>
@@ -136,6 +137,11 @@ const Header = () => {
                     <Link href="/account">My Account</Link>
                     <Link href="/orders">My Orders</Link>
                     <Link href="/wishlist">My Wishlist</Link>
+                    {user.email === 'driger.ray.dranzer@gmail.com' && (
+                      <>
+                        <Link href="/admin/orders" style={{ color: '#0a2472', fontWeight: 600 }}>Admin Panel</Link>
+                      </>
+                    )}
                     <button onClick={handleLogout} className={styles.logoutButton}>
                       <FaSignOutAlt /> Logout
                     </button>
@@ -149,12 +155,36 @@ const Header = () => {
               </div>
             </div>
             
-            <Link href="/wishlist" className={styles.iconLink} aria-label="Wishlist">
+            <Link href="/wishlist" className={`${styles.iconLink} ${styles.tapHighlight}`} aria-label="Wishlist">
               <FaHeart />
             </Link>
             
             <div className={styles.cartIcon}>
-              <Link href="/cart" className={styles.iconLink} aria-label="Shopping Cart">
+              <Link href="/cart" className={`${styles.iconLink} ${styles.tapHighlight}`} aria-label="Shopping Cart">
+                <FaShoppingBag />
+              </Link>
+              {getCartCount() > 0 && (
+                <span className={styles.cartCount}>{getCartCount()}</span>
+              )}
+            </div>
+          </div>
+          
+          {/* Mobile-only icons */}
+          <div className={styles.iconGroup}>
+            <button 
+              className={`${styles.iconLink} ${styles.tapHighlight}`} 
+              aria-label="Search"
+              onClick={toggleSearch}
+            >
+              <FaSearch />
+            </button>
+            
+            <Link href="/wishlist" className={`${styles.iconLink} ${styles.tapHighlight}`} aria-label="Wishlist">
+              <FaHeart />
+            </Link>
+            
+            <div className={styles.cartIcon}>
+              <Link href="/cart" className={`${styles.iconLink} ${styles.tapHighlight}`} aria-label="Shopping Cart">
                 <FaShoppingBag />
               </Link>
               {getCartCount() > 0 && (
@@ -165,7 +195,7 @@ const Header = () => {
           
           {/* Mobile Navigation Menu Button */}
           <button 
-            className={`${styles.hamburgerMenu} ${isMobileMenuOpen ? styles.active : ''}`} 
+            className={`${styles.hamburgerMenu} ${isMobileMenuOpen ? styles.active : ''} ${styles.tapHighlight}`} 
             aria-label="Menu"
             onClick={toggleMobileMenu}
           >
@@ -181,109 +211,168 @@ const Header = () => {
         <div className={styles.mobileMenuHeader}>
           <span>Menu</span>
         </div>
-        <nav className={styles.mobileNav}>
-          <Link href="#" className={styles.navLink} style={{ '--i': 1 } as React.CSSProperties}>
-            <FaGlobe />
-            EN
-          </Link>
-          {navigation.map((item, index) => (
-            <div key={item.label}>
-              {item.dropdown ? (
-                <>
-                  <Link 
-                    href="#"
-                    className={`${styles.navLink} ${styles.hasSubmenu} ${activeSubmenu === item.label ? styles.open : ''}`}
-                    style={{ '--i': index + 2 } as React.CSSProperties}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      toggleSubmenu(item.label);
-                    }}
-                  >
-                    {item.label}
-                    <FaChevronRight />
-                  </Link>
-                  <div className={`${styles.mobileSubmenu} ${activeSubmenu === item.label ? styles.active : ''}`} style={{ display: activeSubmenu === item.label ? 'block' : 'none' }}>
-                    {item.dropdown.map((dropdownItem) => (
-                      <Link key={dropdownItem.label} href={dropdownItem.href}>
-                        {dropdownItem.label}
-                      </Link>
-                    ))}
-                  </div>
-                </>
-              ) : (
-                <Link 
-                  href={item.href}
-                  className={styles.navLink}
-                  style={{ '--i': index + 2 } as React.CSSProperties}
-                >
-                  {item.label}
-                </Link>
-              )}
-            </div>
-          ))}
-          <Link 
-            href="/wishlist" 
-            className={styles.navLink}
-            style={{ '--i': navigation.length + 2 } as React.CSSProperties}
-          >
-            <FaHeart />
-            Wishlist
-          </Link>
-          {user ? (
-            <>
-              <Link 
-                href="/account" 
-                className={styles.navLink}
-                style={{ '--i': navigation.length + 3 } as React.CSSProperties}
-              >
-                <FaUser />
-                My Account
-              </Link>
-              <button 
-                onClick={handleLogout}
-                className={`${styles.navLink} ${styles.logoutButton}`}
-                style={{ '--i': navigation.length + 4 } as React.CSSProperties}
-              >
-                <FaSignOutAlt />
-                Logout
-              </button>
-            </>
-          ) : (
+        
+        <div className={styles.mobileMenuSection}>
+          <h3>Categories</h3>
+          <nav className={styles.mobileNav}>
             <Link 
-              href="/login" 
-              className={styles.navLink}
-              style={{ '--i': navigation.length + 3 } as React.CSSProperties}
+              href="/" 
+              className={`${styles.navLink} ${styles.tapHighlight}`}
+              style={{ '--i': 1 } as React.CSSProperties}
             >
-              <FaUser />
-              Login / Register
+              <FaHome />
+              Home
             </Link>
-          )}
-          <Link 
-            href="/cart" 
-            className={styles.navLink}
-            style={{ '--i': navigation.length + 5 } as React.CSSProperties}
-          >
-            <FaShoppingBag />
-            Cart {getCartCount() > 0 && `(${getCartCount()})`}
-          </Link>
-        </nav>
+            
+            {navigation.map((item, index) => (
+              <div key={item.label}>
+                {item.dropdown ? (
+                  <>
+                    <Link 
+                      href="#"
+                      className={`${styles.navLink} ${styles.hasSubmenu} ${activeSubmenu === item.label ? styles.open : ''} ${styles.tapHighlight}`}
+                      style={{ '--i': index + 2 } as React.CSSProperties}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        toggleSubmenu(item.label);
+                      }}
+                    >
+                      {item.label === 'Men' || item.label === 'Women' ? <FaTshirt /> : <FaBoxOpen />}
+                      {item.label}
+                      <FaChevronRight />
+                    </Link>
+                    <div className={`${styles.mobileSubmenu} ${activeSubmenu === item.label ? styles.active : ''}`}>
+                      {item.dropdown.map((dropdownItem) => (
+                        <Link 
+                          key={dropdownItem.label} 
+                          href={dropdownItem.href}
+                          className={styles.tapHighlight}
+                        >
+                          {dropdownItem.label}
+                        </Link>
+                      ))}
+                    </div>
+                  </>
+                ) : (
+                  <Link 
+                    href={item.href}
+                    className={`${styles.navLink} ${styles.tapHighlight}`}
+                    style={{ '--i': index + 2 } as React.CSSProperties}
+                  >
+                    {item.label === 'New Arrivals' ? <FaBoxOpen /> : <FaTshirt />}
+                    {item.label}
+                  </Link>
+                )}
+              </div>
+            ))}
+          </nav>
+        </div>
+        
+        <div className={styles.mobileMenuSection}>
+          <h3>My Account</h3>
+          <nav className={styles.mobileNav}>
+            <Link 
+              href="/wishlist" 
+              className={`${styles.navLink} ${styles.tapHighlight}`}
+              style={{ '--i': navigation.length + 2 } as React.CSSProperties}
+            >
+              <FaHeart />
+              Wishlist
+            </Link>
+            
+            {user ? (
+              <>
+                <Link 
+                  href="/account" 
+                  className={`${styles.navLink} ${styles.tapHighlight}`}
+                  style={{ '--i': navigation.length + 3 } as React.CSSProperties}
+                >
+                  <FaUser />
+                  My Account
+                </Link>
+                <Link 
+                  href="/orders" 
+                  className={`${styles.navLink} ${styles.tapHighlight}`}
+                  style={{ '--i': navigation.length + 4 } as React.CSSProperties}
+                >
+                  <FaBoxOpen />
+                  My Orders
+                </Link>
+                {user.email === 'driger.ray.dranzer@gmail.com' && (
+                  <Link 
+                    href="/admin/orders" 
+                    className={`${styles.navLink} ${styles.tapHighlight}`}
+                    style={{ '--i': navigation.length + 5, color: '#0a2472', fontWeight: 600 } as React.CSSProperties}
+                  >
+                    <FaUser />
+                    Admin Panel
+                  </Link>
+                )}
+                <button 
+                  onClick={handleLogout} 
+                  className={`${styles.logoutButton} ${styles.tapHighlight}`}
+                  style={{ '--i': navigation.length + 6 } as React.CSSProperties}
+                >
+                  <FaSignOutAlt /> 
+                  Logout
+                </button>
+              </>
+            ) : (
+              <>
+                <Link 
+                  href="/login" 
+                  className={`${styles.navLink} ${styles.tapHighlight}`}
+                  style={{ '--i': navigation.length + 3 } as React.CSSProperties}
+                >
+                  <FaUser />
+                  Login
+                </Link>
+                <Link 
+                  href="/register" 
+                  className={`${styles.navLink} ${styles.tapHighlight}`}
+                  style={{ '--i': navigation.length + 4 } as React.CSSProperties}
+                >
+                  <FaUser />
+                  Register
+                </Link>
+              </>
+            )}
+          </nav>
+        </div>
+        
+        <div className={styles.mobileMenuSection}>
+          <h3>Language</h3>
+          <nav className={styles.mobileNav}>
+            <Link 
+              href="#" 
+              className={`${styles.navLink} ${styles.tapHighlight}`}
+              style={{ '--i': navigation.length + 7 } as React.CSSProperties}
+            >
+              <FaGlobe />
+              English
+            </Link>
+            <Link 
+              href="#" 
+              className={`${styles.navLink} ${styles.tapHighlight}`}
+              style={{ '--i': navigation.length + 8 } as React.CSSProperties}
+            >
+              <FaGlobe />
+              Hindi
+            </Link>
+          </nav>
+        </div>
       </div>
+      
+      {/* Mobile Menu Backdrop */}
+      <div 
+        className={`${styles.menuBackdrop} ${isMobileMenuOpen ? styles.active : ''}`}
+        onClick={toggleMobileMenu}
+      ></div>
 
       {/* Search Overlay */}
-      <div className={`search-overlay ${isSearchOpen ? 'active' : ''}`}>
-        <div className="container">
-          <form className="search-container" onSubmit={(e) => { e.preventDefault(); router.push(`/products?search=${(e.currentTarget.elements.namedItem('search') as HTMLInputElement).value}`); toggleSearch(); }}>
-            <input type="text" name="search" placeholder="Search for products..." autoFocus />
-            <button type="submit" className="search-button"><FaSearch /></button>
-          </form>
-          <div className="search-results">
-            {/* Search results will be dynamically added here */}
-          </div>
-        </div>
-        <button className="close-search" aria-label="Close Search" onClick={toggleSearch}>
-          <i className="fas fa-times"></i>
-        </button>
-      </div>
+      {isSearchOpen && (
+        <Search onClose={() => setIsSearchOpen(false)} />
+      )}
     </header>
   );
 };

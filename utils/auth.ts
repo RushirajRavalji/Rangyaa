@@ -6,22 +6,34 @@ import {
   createUserWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
-  sendEmailVerification
+  sendEmailVerification,
+  getIdToken
 } from 'firebase/auth';
 
 const auth = getAuth(app);
-const STORAGE_KEY = 'nikhilsJeansUser';
+const STORAGE_KEY = 'nikhilsJeansAuthToken';
 
 export const getCurrentUser = (): User | null => {
   if (typeof window === 'undefined') return null;
   
-  try {
-    const userData = localStorage.getItem(STORAGE_KEY);
-    return userData ? JSON.parse(userData) : null;
-  } catch (error) {
-    console.error('Error getting current user:', error);
-    return null;
-  }
+  // Instead of storing the full user object, we now rely on Firebase's auth state
+  const currentUser = auth.currentUser;
+  
+  if (!currentUser) return null;
+  
+  return {
+    id: currentUser.uid,
+    name: currentUser.displayName || currentUser.email?.split('@')[0] || 'User',
+    email: currentUser.email || '',
+    emailVerified: currentUser.emailVerified
+  };
+};
+
+export const isAuthenticated = (): boolean => {
+  if (typeof window === 'undefined') return false;
+  
+  // Check if user is authenticated with Firebase
+  return !!auth.currentUser;
 };
 
 export const login = async (
@@ -33,18 +45,19 @@ export const login = async (
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
     const firebaseUser = userCredential.user;
     
+    // Store only the auth token in localStorage for persistence
+    const token = await firebaseUser.getIdToken();
+    localStorage.setItem(STORAGE_KEY, token);
+    
     // Check if email is verified
     if (!firebaseUser.emailVerified) {
-      // Allow login but return a flag indicating email not verified
+      // Create user object for the app
       const user: User = {
         id: firebaseUser.uid,
         name: firebaseUser.displayName || email.split('@')[0], 
         email: firebaseUser.email || email,
         emailVerified: false
       };
-      
-      // Store in localStorage
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
       
       return { 
         success: true, 
@@ -54,16 +67,13 @@ export const login = async (
       };
     }
     
-    // Create user object to match our app's User type
+    // Create user object for the app
     const user: User = {
       id: firebaseUser.uid,
       name: firebaseUser.displayName || email.split('@')[0], 
       email: firebaseUser.email || email,
       emailVerified: true
     };
-    
-    // Still store in localStorage for our app's current functionality
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
     
     return { 
       success: true, 
@@ -73,13 +83,17 @@ export const login = async (
     };
   } catch (error: any) {
     console.error('Login error:', error);
-    let message = 'Invalid email or password';
+    let message = 'An error occurred during login';
     
     // Parse Firebase error messages
-    if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
-      message = 'Invalid email or password';
-    } else if (error.code === 'auth/too-many-requests') {
-      message = 'Too many failed login attempts. Please try again later.';
+    if (error.code === 'auth/user-not-found') {
+      message = 'No user found with this email';
+    } else if (error.code === 'auth/wrong-password') {
+      message = 'Invalid password';
+    } else if (error.code === 'auth/invalid-email') {
+      message = 'Invalid email address';
+    } else if (error.code === 'auth/user-disabled') {
+      message = 'This account has been disabled';
     } else if (error.code === 'auth/network-request-failed') {
       message = 'Network error. Please check your connection.';
     }
@@ -104,6 +118,10 @@ export const register = async (
     // Send email verification
     await sendEmailVerification(firebaseUser);
     
+    // Store only the auth token in localStorage for persistence
+    const token = await firebaseUser.getIdToken();
+    localStorage.setItem(STORAGE_KEY, token);
+    
     // Create user object
     const user: User = {
       id: firebaseUser.uid,
@@ -111,9 +129,6 @@ export const register = async (
       email: firebaseUser.email || email,
       emailVerified: false
     };
-    
-    // Store in localStorage
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
     
     return { 
       success: true, 
@@ -143,69 +158,45 @@ export const register = async (
   }
 };
 
-export const resendVerificationEmail = async (): Promise<{ success: boolean; message: string }> => {
+export const logout = async (): Promise<{ success: boolean; message: string }> => {
   try {
-    const currentUser = auth.currentUser;
+    await signOut(auth);
     
-    if (!currentUser) {
-      return {
-        success: false,
-        message: 'No user is currently signed in'
-      };
-    }
-    
-    await sendEmailVerification(currentUser);
+    // Clear the auth token from localStorage
+    localStorage.removeItem(STORAGE_KEY);
     
     return {
       success: true,
-      message: 'Verification email sent. Please check your inbox.'
+      message: 'Logout successful'
     };
-  } catch (error: any) {
-    console.error('Error sending verification email:', error);
-    
-    let message = 'Failed to send verification email';
-    if (error.code === 'auth/too-many-requests') {
-      message = 'Too many requests. Please try again later.';
-    }
-    
+  } catch (error) {
+    console.error('Logout error:', error);
     return {
       success: false,
-      message
+      message: 'An error occurred during logout'
     };
   }
-};
-
-export const logout = (): void => {
-  if (typeof window === 'undefined') return;
-  
-  // Sign out from Firebase
-  signOut(auth).catch(error => {
-    console.error('Error signing out:', error);
-  });
-  
-  // Remove from localStorage
-  localStorage.removeItem(STORAGE_KEY);
-};
-
-export const isAuthenticated = (): boolean => {
-  return !!getCurrentUser();
 };
 
 // Set up auth state listener
 if (typeof window !== 'undefined') {
   onAuthStateChanged(auth, (firebaseUser) => {
     if (firebaseUser) {
-      // User is signed in
-      const user: User = {
-        id: firebaseUser.uid,
-        name: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'User',
-        email: firebaseUser.email || '',
-        emailVerified: firebaseUser.emailVerified
-      };
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
+      // User is signed in - update the token
+      firebaseUser.getIdToken().then(token => {
+        localStorage.setItem(STORAGE_KEY, token);
+      });
     } else {
-      // User is signed out
+      // User is signed out - remove the token
       localStorage.removeItem(STORAGE_KEY);
     }
   });
+  
+  // Try to restore the session using the stored token
+  const token = localStorage.getItem(STORAGE_KEY);
+  if (token && !auth.currentUser) {
+    // Token exists but no current user - Firebase will handle the auth state
+    // The onAuthStateChanged listener above will be triggered when auth state is restored
+    console.log('Attempting to restore authentication session');
+  }
 } 

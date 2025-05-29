@@ -16,6 +16,7 @@ export interface User {
   name: string;
   email: string;
   emailVerified?: boolean;
+  role?: string; // 'admin' or 'user'
 }
 
 export interface Address {
