@@ -63,9 +63,10 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const addToCart = (
     product: Product,
     quantity: number = 1,
-    size: string = product.sizes[0],
+    size?: string,
     color?: { name: string; code: string }
   ) => {
+    const selectedSize = size ?? (product.sizes && product.sizes.length > 0 ? product.sizes[0] : '');
     const selectedColor = color || (product.colors ? product.colors[0] : undefined);
     
     setCart(prevCart => {
@@ -73,7 +74,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const existingItemIndex = prevCart.findIndex(
         item => 
           item.product.id === product.id && 
-          item.size === size && 
+          item.size === selectedSize && 
           ((!item.color && !selectedColor) || 
           (item.color?.code === selectedColor?.code))
       );
@@ -94,7 +95,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const newItem: CartItem = {
           product,
           quantity,
-          size,
+          size: selectedSize,
           color: selectedColor
         };
         

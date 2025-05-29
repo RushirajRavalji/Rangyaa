@@ -262,7 +262,7 @@ export default function AdminOrders() {
   };
   
   // Truncate order ID for display
-  const truncateOrderId = (id: string) => {
+  const truncateOrderId = (id: string | undefined) => {
     if (!id) return '';
     return id.length > 10 ? `${id.substring(0, 10)}...` : id;
   };
@@ -450,7 +450,7 @@ export default function AdminOrders() {
                 <tbody>
                   {orders.map((order) => (
                     <tr key={order.id} className={styles.orderRow}>
-                      <td>{truncateOrderId(order.id)}</td>
+                      <td>{truncateOrderId(order.id || '')}</td>
                       <td>{formatDate(order.createdAt)}</td>
                       <td>{order.shipping.firstName} {order.shipping.lastName}</td>
                       <td>{order.items.length}</td>

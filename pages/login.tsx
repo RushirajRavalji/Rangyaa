@@ -5,7 +5,7 @@ import { FaEnvelope, FaLock, FaArrowRight, FaGoogle } from 'react-icons/fa';
 import Layout from '../components/Layout';
 import { useAuth } from '../context/AuthContext';
 import { signInWithGoogle } from '../utils/firebaseAuth';
-import { resendVerificationEmail } from '../utils/auth';
+import { sendVerificationEmail } from '../utils/firebaseAuth';
 import styles from '../styles/Auth.module.css';
 
 const LoginPage = () => {
@@ -140,7 +140,7 @@ const LoginPage = () => {
     setResendingEmail(true);
     
     try {
-      const result = await resendVerificationEmail();
+      const result = await sendVerificationEmail();
       
       if (result.success) {
         if (typeof window !== 'undefined' && window.showNotification) {

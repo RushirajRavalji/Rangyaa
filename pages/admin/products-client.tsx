@@ -19,12 +19,13 @@ const defaultProductForm = {
   discount: 0,
   category: '',
   stock: 0,
-  sizes: ['S', 'M', 'L', 'XL'],
-  colors: [],
-  tags: [],
+  sizes: ['S', 'M', 'L', 'XL'] as string[],
+  colors: [] as { name: string; code: string }[],
+  tags: [] as string[],
   image: '',
   featured: false,
-  new: false
+  new: false,
+  id: '' // Add id property with empty string as default
 };
 
 // Available categories for the datalist
@@ -43,7 +44,7 @@ export default function AdminProductsClient() {
   const { products, addNewProduct, updateExistingProduct, removeProduct, uploadImage } = useProducts();
   
   // Form state
-  const [productForm, setProductForm] = useState<Product>(defaultProductForm as Product);
+  const [productForm, setProductForm] = useState<Product>(defaultProductForm as unknown as Product);
   const [isAdding, setIsAdding] = useState<boolean>(false);
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -150,7 +151,7 @@ export default function AdminProductsClient() {
       setError(null);
       
       if (isEditing) {
-        await updateExistingProduct(productForm);
+        await updateExistingProduct(productForm.id, productForm);
         setSubmitStatus({
           type: 'success',
           message: 'Product updated successfully!'
@@ -208,10 +209,11 @@ export default function AdminProductsClient() {
   
   // Reset form to default values
   const resetForm = () => {
-    setProductForm(defaultProductForm as Product);
+    setProductForm(defaultProductForm as unknown as Product);
     setImagePreview(null);
     setFormErrors({});
     setIsEditing(false);
+    if (formRef.current) formRef.current.reset();
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
   
@@ -529,7 +531,7 @@ export default function AdminProductsClient() {
                     type="text"
                     id="sizes"
                     name="sizes"
-                    value={productForm.sizes.join(', ')}
+                    value={productForm.sizes?.join(', ') || ''}
                     onChange={(e) => handleArrayChange('sizes', e.target.value)}
                   />
                 </div>
