@@ -455,20 +455,20 @@
 
 @media (max-width: 576px) {
   .productDetail {
-    padding: 100px 0 40px;
+    padding: 80px 0 40px;
   }
   
   .productInfo h1 {
-    font-size: var(--font-size-2xl);
+    font-size: var(--font-size-xl);
+    margin-bottom: 10px;
   }
   
   .salePrice {
-    font-size: var(--font-size-xl);
+    font-size: var(--font-size-lg);
   }
   
   .relatedProductsGrid {
     grid-template-columns: 1fr;
-    gap: 20px;
   }
   
   .productActions {
@@ -476,8 +476,75 @@
     gap: 10px;
   }
   
-  .quickView {
+  .wishlistBtn {
     width: 100%;
+  }
+  
+  .specTable th,
+  .specTable td {
+    padding: 10px;
+    font-size: var(--font-size-sm);
+  }
+  
+  .tabsHeader {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 5px;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .tabButton {
+    padding: 10px 15px;
+    font-size: var(--font-size-xs);
+    white-space: nowrap;
+  }
+  
+  .thumbnailGallery {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 5px;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .sizeOptions {
+    flex-wrap: wrap;
+  }
+  
+  .sizeOption {
+    min-width: 40px;
+    height: 40px;
+    font-size: var(--font-size-xs);
+  }
+}
+
+/* Extra small devices */
+@media (max-width: 375px) {
+  .productDetail {
+    padding: 70px 0 30px;
+  }
+  
+  .productInfo h1 {
+    font-size: var(--font-size-lg);
+  }
+  
+  .quantityControl {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  
+  .sizeHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  
+  .sizeGuideButton {
+    font-size: var(--font-size-xs);
+    padding: 5px 10px;
+  }
+  
+  .productMeta {
+    font-size: var(--font-size-xs);
   }
 }
 

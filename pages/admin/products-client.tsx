@@ -189,11 +189,21 @@ export default function AdminProductsClient() {
     const file = e.target.files?.[0];
     if (!file) return;
     
-    // Create a preview
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setImagePreview(reader.result as string);
-      setProductForm(prev => ({ ...prev, image: reader.result as string }));
+    try {
+      setLoading(true);
+      
+      // Create a preview for immediate feedback
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+      
+      // Upload to Firebase Storage
+      const imageUrl = await uploadImage(file);
+      
+      // Update form with the Firebase Storage URL
+      setProductForm(prev => ({ ...prev, image: imageUrl }));
       
       // Clear image error if it exists
       if (formErrors.image) {
@@ -203,8 +213,25 @@ export default function AdminProductsClient() {
           return newErrors;
         });
       }
-    };
-    reader.readAsDataURL(file);
+      
+      setSubmitStatus({
+        type: 'success',
+        message: 'Image uploaded successfully!'
+      });
+      
+      // Clear status message after 3 seconds
+      setTimeout(() => {
+        setSubmitStatus(null);
+      }, 3000);
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      setSubmitStatus({
+        type: 'error',
+        message: 'Failed to upload image. Please try again.'
+      });
+    } finally {
+      setLoading(false);
+    }
   };
   
   // Reset form to default values
@@ -416,6 +443,7 @@ export default function AdminProductsClient() {
                     value={productForm.name}
                     onChange={handleChange}
                     className={formErrors.name ? styles.errorInput : ''}
+                    placeholder="Enter product name"
                   />
                   {formErrors.name && <div className={styles.errorText}>{formErrors.name}</div>}
                 </div>
@@ -432,6 +460,7 @@ export default function AdminProductsClient() {
                     onChange={handleChange}
                     list="categories"
                     className={formErrors.category ? styles.errorInput : ''}
+                    placeholder="Select or enter category"
                   />
                   <datalist id="categories">
                     {categories.map((category) => (
@@ -454,6 +483,7 @@ export default function AdminProductsClient() {
                     value={productForm.price}
                     onChange={handleChange}
                     className={formErrors.price ? styles.errorInput : ''}
+                    placeholder="0.00"
                   />
                   {formErrors.price && <div className={styles.errorText}>{formErrors.price}</div>}
                 </div>
@@ -470,6 +500,7 @@ export default function AdminProductsClient() {
                     step="0.01"
                     value={productForm.originalPrice || ''}
                     onChange={handleChange}
+                    placeholder="0.00"
                   />
                 </div>
 
@@ -486,6 +517,7 @@ export default function AdminProductsClient() {
                     step="1"
                     value={productForm.discount || ''}
                     onChange={handleChange}
+                    placeholder="0"
                   />
                 </div>
 
@@ -502,6 +534,7 @@ export default function AdminProductsClient() {
                     value={productForm.stock}
                     onChange={handleChange}
                     className={formErrors.stock ? styles.errorInput : ''}
+                    placeholder="0"
                   />
                   {formErrors.stock && <div className={styles.errorText}>{formErrors.stock}</div>}
                 </div>
@@ -518,6 +551,7 @@ export default function AdminProductsClient() {
                   onChange={handleChange}
                   rows={4}
                   className={formErrors.description ? styles.errorInput : ''}
+                  placeholder="Enter product description"
                 />
                 {formErrors.description && <div className={styles.errorText}>{formErrors.description}</div>}
               </div>
@@ -533,6 +567,7 @@ export default function AdminProductsClient() {
                     name="sizes"
                     value={productForm.sizes?.join(', ') || ''}
                     onChange={(e) => handleArrayChange('sizes', e.target.value)}
+                    placeholder="S, M, L, XL"
                   />
                 </div>
 
@@ -546,6 +581,7 @@ export default function AdminProductsClient() {
                     name="tags"
                     value={productForm.tags?.join(', ') || ''}
                     onChange={(e) => handleArrayChange('tags', e.target.value)}
+                    placeholder="jeans, casual, trendy"
                   />
                 </div>
               </div>
@@ -560,7 +596,7 @@ export default function AdminProductsClient() {
                   name="colors"
                   value={productForm.colors?.map(c => `${c.name}:${c.code}`).join(', ') || ''}
                   onChange={(e) => handleColorsChange(e.target.value)}
-                  placeholder="e.g. Red:#ff0000, Blue:#0000ff"
+                  placeholder="Red:#ff0000, Blue:#0000ff, Black:#000000"
                 />
               </div>
 

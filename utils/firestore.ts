@@ -393,31 +393,95 @@ export const clearProductCache = () => {
   productCache.lastFetched = 0;
 };
 
+// Ensure we have a valid storage instance
+const getStorageInstance = () => {
+  const storage = typeof window !== 'undefined' ? getStorage(app) : null;
+  if (storage === null) {
+    return getStorage(app);
+  }
+  return storage;
+};
+
 // Upload image to Firebase Storage
 export const uploadProductImage = async (file: File): Promise<string> => {
   try {
-    // Create a unique filename
+    // Convert file to base64
+    const base64String = await fileToBase64(file);
+    
+    // Create a unique ID for the image
     const timestamp = new Date().getTime();
     const fileName = `product_${timestamp}_${file.name.replace(/[^a-zA-Z0-9.]/g, '_')}`;
     
-    // Create a reference to the file in storage
-    const storageRef = ref(storage, `product_images/${fileName}`);
+    // Store the base64 image in Firestore
+    const imageCollection = collection(db, 'images');
+    const imageDoc = await addDoc(imageCollection, {
+      name: fileName,
+      type: file.type,
+      base64: base64String,
+      createdAt: serverTimestamp()
+    });
     
-    // Upload the file
-    await uploadBytes(storageRef, file);
-    
-    // Get the download URL
-    const downloadURL = await getDownloadURL(storageRef);
-    return downloadURL;
+    // Return the document ID as the image URL
+    return `base64://${imageDoc.id}`;
   } catch (error) {
     console.error('Error uploading image:', error);
     throw new Error('Failed to upload product image');
   }
 };
 
-// Delete product image from Firebase Storage
+// Helper function to convert File to base64
+const fileToBase64 = (file: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = error => reject(error);
+  });
+};
+
+// Get image by ID
+export const getImageById = async (imageId: string): Promise<string> => {
+  try {
+    console.log(`Fetching image with ID: ${imageId}`);
+    const imageDoc = doc(db, 'images', imageId);
+    const snapshot = await getDoc(imageDoc);
+    
+    if (snapshot.exists()) {
+      const data = snapshot.data();
+      
+      if (!data || !data.base64) {
+        console.error(`Image exists but has no base64 data. ID: ${imageId}`);
+        return '/images/placeholder.jpg';
+      }
+      
+      console.log(`Successfully retrieved base64 image. ID: ${imageId}`);
+      return data.base64;
+    }
+    
+    console.error(`Image not found with ID: ${imageId}`);
+    return '/images/placeholder.jpg';
+  } catch (error) {
+    console.error('Error getting image:', error);
+    // Return a placeholder instead of throwing, to prevent UI breaking
+    return '/images/placeholder.jpg';
+  }
+};
+
+// Delete product image from Firestore
 export const deleteProductImage = async (imageUrl: string): Promise<void> => {
   try {
+    // Check if it's a base64 image
+    if (imageUrl.startsWith('base64://')) {
+      const imageId = imageUrl.replace('base64://', '');
+      const imageDoc = doc(db, 'images', imageId);
+      await deleteDoc(imageDoc);
+      console.log('Product image deleted successfully from Firestore:', imageId);
+      return;
+    }
+    
+    // Handle legacy Storage URLs
+    const storage = getStorageInstance();
+    
     // Extract the file path from the URL
     const decodedUrl = decodeURIComponent(imageUrl);
     const startIndex = decodedUrl.indexOf('product_images');
@@ -437,7 +501,7 @@ export const deleteProductImage = async (imageUrl: string): Promise<void> => {
     
     // Delete the file
     await deleteObject(imageRef);
-    console.log('Product image deleted successfully:', filePath);
+    console.log('Product image deleted successfully from Storage:', filePath);
   } catch (error) {
     console.error('Error deleting product image:', error);
     // Don't throw error here, as we want to continue with product deletion

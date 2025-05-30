@@ -84,7 +84,7 @@ const Hero: React.FC<HeroProps> = ({
   return (
     <div 
       ref={heroRef}
-      className={`${styles.hero} ${heightClass} ${isLoaded ? styles.loaded : ''}`}
+      className={`${styles.hero} ${heightClass} ${isLoaded ? styles.loaded : ''} hero-section`}
       style={{ 
         backgroundImage: bannerImage ? `url(${bannerImage})` : undefined,
       }}
@@ -97,16 +97,16 @@ const Hero: React.FC<HeroProps> = ({
       )}
       
       <div className={`${styles.heroContent} ${alignClass}`}>
-        <h1 style={{ color: textColor }}>{heading}</h1>
+        <h1 className="hero-text" style={{ color: textColor }}>{heading}</h1>
         
         {subheading && (
-          <p className={styles.subheading} style={{ color: textColor }}>
+          <p className={`${styles.subheading} text-readable`} style={{ color: textColor }}>
             {subheading}
           </p>
         )}
         
         {buttonText && buttonLink && (
-          <a href={buttonLink} className={styles.heroButton}>
+          <a href={buttonLink} className={`${styles.heroButton} explore-btn`}>
             {buttonText} <FaArrowRight className={styles.buttonIcon} />
           </a>
         )}

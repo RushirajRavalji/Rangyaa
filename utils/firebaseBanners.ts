@@ -1,6 +1,5 @@
-import { app } from './firebase';
+import { app, db } from './firebase';
 import { 
-  getFirestore, 
   collection, 
   getDocs, 
   doc, 
@@ -10,15 +9,21 @@ import {
   deleteDoc, 
   query, 
   where, 
-  serverTimestamp 
+  serverTimestamp,
+  getFirestore
 } from 'firebase/firestore';
 import { deleteBannerImage } from './firebaseStorage';
 
-// Initialize Firestore
-export const db = getFirestore(app);
+// Get Firestore instance - use the imported db or initialize a new one if it's null
+const getDb = () => {
+  if (db) return db;
+  return getFirestore(app);
+};
 
-// Collection reference
-const bannersCollection = collection(db, 'banners');
+// Collection reference - create it when needed
+const getBannersCollection = () => {
+  return collection(getDb(), 'banners');
+};
 
 // Banner interface
 export interface FirebaseBanner {
@@ -36,6 +41,7 @@ export interface FirebaseBanner {
 // Get all banners
 export const getAllBanners = async (): Promise<FirebaseBanner[]> => {
   try {
+    const bannersCollection = getBannersCollection();
     const snapshot = await getDocs(bannersCollection);
     return snapshot.docs.map(doc => ({
       id: doc.id,
@@ -50,6 +56,7 @@ export const getAllBanners = async (): Promise<FirebaseBanner[]> => {
 // Get banners by page
 export const getBannersByPage = async (page: string): Promise<FirebaseBanner[]> => {
   try {
+    const bannersCollection = getBannersCollection();
     const q = query(bannersCollection, where('page', '==', page));
     const snapshot = await getDocs(q);
     return snapshot.docs.map(doc => ({
@@ -82,6 +89,7 @@ export const addBanner = async (banner: Omit<FirebaseBanner, 'id' | 'createdAt' 
     };
     
     // Add to Firestore
+    const bannersCollection = getBannersCollection();
     const docRef = await addDoc(bannersCollection, bannerWithTimestamps);
     
     // Return the new banner with ID
@@ -98,7 +106,7 @@ export const addBanner = async (banner: Omit<FirebaseBanner, 'id' | 'createdAt' 
 // Update a banner
 export const updateBanner = async (id: string, updates: Partial<FirebaseBanner>): Promise<void> => {
   try {
-    const bannerRef = doc(db, 'banners', id);
+    const bannerRef = doc(getDb(), 'banners', id);
     
     // Get the current banner data
     const bannerSnapshot = await getDoc(bannerRef);
@@ -136,7 +144,7 @@ export const updateBanner = async (id: string, updates: Partial<FirebaseBanner>)
 // Delete a banner
 export const deleteBanner = async (id: string): Promise<void> => {
   try {
-    const bannerRef = doc(db, 'banners', id);
+    const bannerRef = doc(getDb(), 'banners', id);
     
     // Get the banner data to access the image URL
     const bannerSnapshot = await getDoc(bannerRef);

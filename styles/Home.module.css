@@ -37,85 +37,6 @@
   margin-top: 20px;
 }
 
-/* Categories Section */
-.categoriesSection {
-  padding: 80px 0 60px;
-}
-
-.categoriesGrid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 20px;
-}
-
-.categoryCard {
-  position: relative;
-  height: 300px;
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
-  text-decoration: none;
-}
-
-.categoryCard:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-}
-
-.categoryImage {
-  position: relative;
-  width: 100%;
-  height: 100%;
-}
-
-.categoryImage::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.7));
-  z-index: 1;
-}
-
-.categoryContent {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  padding: 20px;
-  z-index: 2;
-  color: #ffffff;
-  transition: all 0.3s ease;
-}
-
-.categoryCard:hover .categoryContent {
-  transform: translateY(-10px);
-}
-
-.categoryContent h3 {
-  font-size: 22px;
-  font-weight: 600;
-  margin-bottom: 10px;
-}
-
-.categoryLink {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 14px;
-  font-weight: 500;
-  opacity: 0.8;
-  transition: all 0.3s ease;
-}
-
-.categoryCard:hover .categoryLink {
-  opacity: 1;
-  color: #d4af37;
-}
-
 /* Products Section */
 .productsSection {
   padding: 60px 0;
@@ -248,7 +169,6 @@
 .bannerButton:hover {
   background-color: transparent;
   color: #ffffff;
-  transform: translateY(-3px);
 }
 
 /* Testimonials Section */
@@ -388,13 +308,8 @@
 }
 
 @media (max-width: 992px) {
-  .categoriesGrid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 15px;
-  }
-  
   .productGrid {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, 1fr);
     gap: 20px;
   }
   
@@ -416,10 +331,11 @@
 }
 
 @media (max-width: 768px) {
-  .categoriesSection,
   .productsSection,
-  .bannerSection,
-  .testimonialsSection {
+  .featuredProducts,
+  .newArrivals,
+  .testimonialsSection,
+  .promotionBanner {
     padding: 40px 0;
   }
   
@@ -433,6 +349,7 @@
   
   .sectionTitle p {
     font-size: 14px;
+    margin-top: 15px;
   }
   
   .banner {
@@ -442,33 +359,25 @@
   .bannerContent {
     padding: 0 30px;
     max-width: 100%;
-    text-align: center;
   }
   
   .bannerContent h2 {
     font-size: 30px;
+    margin-bottom: 10px;
   }
   
   .bannerContent p {
     font-size: 16px;
+    margin-bottom: 20px;
   }
   
   .testimonialQuote {
-    padding: 20px 15px;
+    padding: 20px;
   }
   
   .productGrid {
     grid-template-columns: repeat(2, 1fr);
     gap: 15px;
-  }
-  
-  .categoryContent h3 {
-    font-size: 18px;
-    margin-bottom: 5px;
-  }
-  
-  .categoryLink {
-    font-size: 12px;
   }
   
   .viewAllButton {
@@ -478,51 +387,45 @@
   
   .testimonialAuthor {
     flex-direction: column;
-    text-align: center;
+    align-items: center;
   }
   
-  .categoriesSection,
   .productsSection,
-  .bannerSection,
-  .testimonialsSection {
-    padding: 30px 0;
+  .featuredProducts,
+  .newArrivals,
+  .testimonialsSection,
+  .promotionBanner {
+    padding: 40px 0;
   }
   
   .sectionTitle {
-    margin-bottom: 20px;
+    margin-bottom: 25px;
   }
   
   .sectionTitle h2 {
-    font-size: 20px;
+    font-size: 22px;
   }
   
   .sectionTitle h2::after {
-    width: 40px;
-    height: 2px;
+    width: 50px;
+    bottom: -8px;
   }
   
   .authorImage {
+    margin-right: 0;
     margin-bottom: 10px;
   }
   
   .testimonialQuote p {
     font-size: 14px;
+    line-height: 1.5;
   }
 }
 
 @media (max-width: 576px) {
-  .categoriesGrid {
-    grid-template-columns: 1fr;
-    gap: 15px;
-  }
-  
   .productGrid {
     grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
-  }
-  
-  .categoryCard {
-    height: 200px;
+    gap: 12px;
   }
   
   .banner {
@@ -531,12 +434,12 @@
   
   .bannerContent h2 {
     font-size: 24px;
-    margin-bottom: 10px;
+    margin-bottom: 5px;
   }
   
   .bannerContent p {
     font-size: 14px;
-    margin-bottom: 20px;
+    margin-bottom: 15px;
   }
   
   .bannerButton,
@@ -546,14 +449,14 @@
   }
   
   .testimonialAuthor {
-    flex-direction: column;
-    text-align: center;
+    margin-top: 10px;
   }
   
-  .categoriesSection,
   .productsSection,
-  .bannerSection,
-  .testimonialsSection {
+  .featuredProducts,
+  .newArrivals,
+  .testimonialsSection,
+  .promotionBanner {
     padding: 30px 0;
   }
   
@@ -568,21 +471,24 @@
   .sectionTitle h2::after {
     width: 40px;
     height: 2px;
+    bottom: -6px;
   }
   
   .authorImage {
-    margin-bottom: 10px;
+    width: 40px;
+    height: 40px;
   }
   
   .testimonialQuote p {
     font-size: 14px;
+    line-height: 1.5;
   }
 }
 
 @media (max-width: 375px) {
   .productGrid {
-    grid-template-columns: 1fr;
-    gap: 15px;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
   }
   
   .banner {
@@ -590,12 +496,13 @@
   }
   
   .bannerContent h2 {
-    font-size: 20px;
+    font-size: 22px;
+    line-height: 1.3;
   }
   
   .bannerContent p {
     font-size: 13px;
-    margin-bottom: 15px;
+    margin-bottom: 12px;
   }
   
   .bannerButton,
@@ -610,7 +517,7 @@
   
   .sectionTitle p {
     font-size: 12px;
-    margin-top: 15px;
+    margin-top: 10px;
   }
   
   .testimonialDots {
@@ -622,4 +529,51 @@
     height: 8px;
     margin: 0 4px;
   }
-} 
+}
+
+@media screen and (min-width: 375px) and (max-width: 414px) {
+  .productGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+    margin: 20px 0;
+  }
+  
+  .sectionTitle h2 {
+    font-size: 20px;
+  }
+  
+  .sectionTitle p {
+    font-size: 13px;
+    margin-top: 12px;
+  }
+  
+  .viewAllButton {
+    padding: 8px 20px;
+    font-size: 12px;
+  }
+  
+  .testimonialSection {
+    padding: 30px 0;
+  }
+  
+  .testimonialCard {
+    padding: 15px;
+  }
+  
+  .testimonialQuote {
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  
+  .testimonialAuthor {
+    margin-top: 10px;
+  }
+  
+  .testimonialName {
+    font-size: 14px;
+  }
+  
+  .testimonialRole {
+    font-size: 12px;
+  }
+}

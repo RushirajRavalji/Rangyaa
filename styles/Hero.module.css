@@ -310,13 +310,14 @@
 
 @media (max-width: 768px) {
   .heading {
-    font-size: 2.2rem;
+    font-size: 2.5rem;
   }
   
   .subheading {
-    font-size: 1.1rem;
+    font-size: 1.2rem;
+    margin-bottom: 1.5rem;
     max-width: 100%;
-    padding: 0 15px;
+    padding: 0 10px;
   }
   
   .small {
@@ -324,25 +325,24 @@
   }
   
   .medium {
-    height: 350px;
+    height: 400px;
   }
   
   .large {
-    height: 450px;
+    height: 500px;
   }
   
   .heroButton {
     padding: 12px 28px;
-    font-size: 0.9rem;
+    font-size: 14px;
   }
   
   .mouse {
-    width: 24px;
-    height: 40px;
+    display: none;
   }
   
   .heroContent {
-    padding: 1rem;
+    padding: 1.5rem;
     width: 100%;
   }
   
@@ -353,19 +353,22 @@
 
 @media (max-width: 576px) {
   .heading {
-    font-size: 1.8rem;
-    padding: 0 10px;
+    font-size: 2rem;
+    margin-bottom: 0.8rem;
+    line-height: 1.2;
   }
   
   .subheading {
     font-size: 1rem;
-    margin-bottom: 1.5rem;
-    padding: 0 10px;
+    margin-bottom: 1.2rem;
+    line-height: 1.5;
+    padding: 0;
   }
   
   .heroContent {
-    padding: 1rem;
+    padding: 1.2rem;
     width: 100%;
+    max-width: 100%;
   }
   
   .small {
@@ -373,7 +376,7 @@
   }
   
   .medium {
-    height: 300px;
+    height: 350px;
   }
   
   .large {
@@ -385,24 +388,26 @@
   }
   
   .word {
-    animation-duration: 0.6s;
+    margin-bottom: 5px;
   }
   
   .heroButton {
     padding: 10px 24px;
-    font-size: 0.85rem;
+    font-size: 13px;
+    width: 100%;
+    max-width: 250px;
   }
 }
 
 /* Extra small devices */
 @media (max-width: 375px) {
   .heading {
-    font-size: 1.6rem;
+    font-size: 1.75rem;
   }
   
   .subheading {
     font-size: 0.9rem;
-    margin-bottom: 1.2rem;
+    margin-bottom: 1rem;
   }
   
   .small {
@@ -410,7 +415,7 @@
   }
   
   .medium {
-    height: 280px;
+    height: 300px;
   }
   
   .large {
@@ -418,7 +423,102 @@
   }
   
   .heroButton {
-    padding: 8px 20px;
-    font-size: 0.8rem;
+    padding: 10px 20px;
+    font-size: 12px;
+  }
+}
+
+/* iPhone 11 optimized hero styles */
+@media screen and (min-width: 375px) and (max-width: 414px) {
+  .heroSection {
+    height: 60vh;
+    padding: 20px;
+    margin-top: 60px;
+  }
+
+  .heroContainer {
+    max-width: 100%;
+    padding: 0;
+  }
+
+  .heroContent {
+    width: 100%;
+    padding: 30px 20px;
+    text-align: center;
+    align-items: center;
+  }
+
+  .heroHeading {
+    font-size: 28px;
+    line-height: 1.3;
+    margin-bottom: 15px;
+    font-weight: 700;
+  }
+
+  .heroSubheading {
+    font-size: 16px;
+    line-height: 1.5;
+    margin-bottom: 25px;
+  }
+
+  .heroButton {
+    padding: 14px 28px;
+    font-size: 15px;
+    min-width: 200px;
+    border-radius: 25px;
+    font-weight: 600;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Specific heights for different pages */
+  .heroSection.large {
+    height: 70vh;
+  }
+
+  .heroSection.medium {
+    height: 50vh;
+  }
+
+  .heroSection.small {
+    height: 35vh;
+  }
+
+  /* Image overlay adjustments */
+  .heroOverlay {
+    opacity: 0.5;
+  }
+}
+
+/* General mobile improvements */
+@media (max-width: 767px) {
+  .heroSection {
+    height: auto;
+    min-height: 60vh;
+    margin-top: 60px;
+  }
+
+  .heroContent {
+    width: 100%;
+    padding: 30px 20px;
+    text-align: center;
+    align-items: center;
+  }
+
+  .heroHeading {
+    font-size: 26px;
+    text-align: center;
+  }
+
+  .heroSubheading {
+    font-size: 16px;
+    text-align: center;
+  }
+
+  .heroButton {
+    padding: 12px 25px;
+    font-size: 15px;
+    margin: 0 auto;
+    display: block;
+    text-align: center;
   }
 } 

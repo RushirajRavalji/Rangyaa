@@ -5,6 +5,9 @@ import Header from './Header';
 import Footer from './Footer';
 import styles from '../styles/Layout.module.css';
 import ClientOnly from './ClientOnly';
+import { FaHome, FaSearch, FaHeart, FaShoppingBag, FaUser } from 'react-icons/fa';
+import { useRouter } from 'next/router';
+import Link from 'next/link';
 
 interface LayoutProps {
   children: ReactNode;
@@ -25,6 +28,8 @@ const Layout = ({
 }: LayoutProps) => {
   const [showScrollButton, setShowScrollButton] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const router = useRouter();
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
     // Simulate page loading
@@ -73,11 +78,23 @@ const Layout = ({
       }, 5000);
     };
 
+    // Check if device is mobile
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 767);
+    };
+    
+    // Initial check
+    checkMobile();
+    
+    // Add event listener for window resize
+    window.addEventListener('resize', checkMobile);
+
     return () => {
       clearTimeout(timer);
       window.removeEventListener('scroll', handleScroll);
       // @ts-ignore
       delete window.showNotification;
+      window.removeEventListener('resize', checkMobile);
     };
   }, []);
 
@@ -102,7 +119,7 @@ const Layout = ({
         <meta name="twitter:title" content={title} />
         <meta name="twitter:description" content={description} />
         <meta name="twitter:image" content={ogImage} />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
@@ -130,6 +147,32 @@ const Layout = ({
             >
               <FaArrowUp />
             </button>
+          )}
+          
+          {/* Mobile bottom navigation */}
+          {isMobile && (
+            <div className="mobile-nav">
+              <Link href="/" className="nav-item">
+                <FaHome className="nav-icon" />
+                <span className="nav-text">Home</span>
+              </Link>
+              <Link href="/search" className="nav-item">
+                <FaSearch className="nav-icon" />
+                <span className="nav-text">Search</span>
+              </Link>
+              <Link href="/wishlist" className="nav-item">
+                <FaHeart className="nav-icon" />
+                <span className="nav-text">Wishlist</span>
+              </Link>
+              <Link href="/cart" className="nav-item">
+                <FaShoppingBag className="nav-icon" />
+                <span className="nav-text">Bag</span>
+              </Link>
+              <Link href="/account" className="nav-item">
+                <FaUser className="nav-icon" />
+                <span className="nav-text">Account</span>
+              </Link>
+            </div>
           )}
         </>
       )}

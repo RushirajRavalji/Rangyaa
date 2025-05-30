@@ -1,10 +1,10 @@
-import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { FaHeart, FaRegHeart, FaStar, FaRegStar, FaEye, FaShoppingCart } from 'react-icons/fa';
 import { Product } from '../data/products';
 import { useCart } from '../context/CartContext';
 import styles from '../styles/ProductCard.module.css';
+import Base64Image from './Base64Image';
 
 interface ProductCardProps {
   product: Product;
@@ -16,6 +16,7 @@ interface ProductCardProps {
 const ProductCard = ({ product, onAddToCart, onQuickView, index = 0 }: ProductCardProps) => {
   const [isMobile, setIsMobile] = useState(false);
   const [imageError, setImageError] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
   const { addToCart, toggleWishlist, isInWishlist } = useCart();
 
   // Check if we're on mobile on component mount
@@ -35,6 +36,12 @@ const ProductCard = ({ product, onAddToCart, onQuickView, index = 0 }: ProductCa
       return () => window.removeEventListener('resize', checkIfMobile);
     }
   }, []);
+
+  useEffect(() => {
+    // Log product information to help debug
+    console.log(`Rendering ProductCard for product: ${product.id} - ${product.name}`);
+    console.log(`Product image source: ${product.image}`);
+  }, [product]);
 
   const handleQuickView = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -73,6 +80,19 @@ const ProductCard = ({ product, onAddToCart, onQuickView, index = 0 }: ProductCa
     }
   };
 
+  // Handle image load success
+  const handleImageLoad = () => {
+    setImageLoaded(true);
+    setImageError(false);
+    console.log(`Image loaded successfully for product: ${product.id}`);
+  };
+
+  // Handle image load error
+  const handleImageError = () => {
+    setImageError(true);
+    console.error(`Failed to load image for product: ${product.id}`);
+  };
+
   // Format discount percentage
   const discountPercent = product.originalPrice && product.price 
     ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
@@ -101,7 +121,7 @@ const ProductCard = ({ product, onAddToCart, onQuickView, index = 0 }: ProductCa
 
   return (
     <div 
-      className={`${styles.productCard} animate-on-scroll animate-hover`} 
+      className={`${styles.productCard} ${imageLoaded ? styles.loaded : ''} product-card animate-on-scroll animate-hover`} 
       onClick={handleCardClick}
       style={{ animationDelay }}
     >
@@ -109,15 +129,26 @@ const ProductCard = ({ product, onAddToCart, onQuickView, index = 0 }: ProductCa
         <div className={`${styles.imageWrapper} img-hover-zoom`}>
           <Link href={`/product/${product.id}`}>
             <div className={styles.imageContainer}>
-              <Image 
-                src={imageSrc}
-                alt={product.name}
-                fill
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                style={{ objectFit: 'cover' }}
-                onError={() => setImageError(true)}
-                priority={product.featured}
-              />
+              {/* Use regular img tag instead of Base64Image for more direct control */}
+              {product.image.startsWith('base64://') ? (
+                <Base64Image 
+                  src={product.image}
+                  alt={product.name}
+                  style={{ objectFit: 'cover', width: '100%', height: '100%' }}
+                  priority={product.featured}
+                  className="responsive-image"
+                />
+              ) : (
+                <img 
+                  src={imageSrc}
+                  alt={product.name}
+                  style={{ objectFit: 'cover', width: '100%', height: '100%' }}
+                  className="responsive-image"
+                  onLoad={handleImageLoad}
+                  onError={handleImageError}
+                  loading={product.featured ? "eager" : "lazy"}
+                />
+              )}
             </div>
           </Link>
           
@@ -132,7 +163,7 @@ const ProductCard = ({ product, onAddToCart, onQuickView, index = 0 }: ProductCa
           )}
         </div>
         
-        <div className={styles.productActions}>
+        <div className={`${styles.productActions} product-action`}>
           <button 
             className={`${styles.actionButton} btn-animate`} 
             onClick={handleToggleWishlist}
@@ -163,7 +194,7 @@ const ProductCard = ({ product, onAddToCart, onQuickView, index = 0 }: ProductCa
         </div>
       </div>
       
-      <div className={styles.productInfo}>
+      <div className={`${styles.productInfo} text-readable`}>
         <div className={styles.productCategory}>{product.category.toUpperCase()}</div>
         <Link href={`/product/${product.id}`} className={styles.productName}>
           <h3>{product.name}</h3>

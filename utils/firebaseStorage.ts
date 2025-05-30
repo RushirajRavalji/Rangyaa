@@ -1,18 +1,26 @@
+import { storage } from './firebase';
+import { ref, uploadBytes, getDownloadURL, deleteObject, getStorage } from 'firebase/storage';
 import { app } from './firebase';
-import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 
-// Initialize Storage
-export const storage = getStorage(app);
+// Ensure we have a valid storage instance
+const getStorageInstance = () => {
+  if (storage === null) {
+    return getStorage(app);
+  }
+  return storage;
+};
 
 // Upload banner image to Firebase Storage
 export const uploadBannerImage = async (file: File): Promise<string> => {
   try {
+    const storageInstance = getStorageInstance();
+    
     // Create a unique filename
     const timestamp = new Date().getTime();
     const fileName = `banner_${timestamp}_${file.name.replace(/[^a-zA-Z0-9.]/g, '_')}`;
     
     // Create a reference to the file in storage
-    const storageRef = ref(storage, `banner_images/${fileName}`);
+    const storageRef = ref(storageInstance, `banner_images/${fileName}`);
     
     // Upload the file
     await uploadBytes(storageRef, file);
@@ -29,6 +37,8 @@ export const uploadBannerImage = async (file: File): Promise<string> => {
 // Delete banner image from Firebase Storage
 export const deleteBannerImage = async (imageUrl: string): Promise<void> => {
   try {
+    const storageInstance = getStorageInstance();
+    
     // Extract the file path from the URL
     // Firebase Storage URLs contain a token after the file path, so we need to extract just the path
     const decodedUrl = decodeURIComponent(imageUrl);
@@ -45,7 +55,7 @@ export const deleteBannerImage = async (imageUrl: string): Promise<void> => {
       : decodedUrl.substring(startIndex);
     
     // Create a reference to the file
-    const imageRef = ref(storage, filePath);
+    const imageRef = ref(storageInstance, filePath);
     
     // Delete the file
     await deleteObject(imageRef);

@@ -429,16 +429,21 @@
 }
 
 @media (max-width: 768px) {
+  .modernCartContainer {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  
   .itemDetails {
     flex-direction: column;
   }
   
   .itemPricing {
+    width: 100%;
     flex-direction: row;
-    align-items: center;
     justify-content: space-between;
+    align-items: center;
     margin-top: var(--spacing-md);
-    text-align: left;
     min-width: auto;
   }
   
@@ -448,41 +453,154 @@
   
   .itemActions {
     flex-direction: row;
+    gap: var(--spacing-md);
   }
   
   .productGrid {
     grid-template-columns: repeat(2, 1fr);
-    gap: var(--spacing-sm);
+    gap: 15px;
+  }
+  
+  .shoppingBenefits {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+  }
+  
+  .benefit {
+    padding: var(--spacing-md);
+  }
+  
+  .benefitText {
+    font-size: var(--font-size-sm);
   }
 }
 
 @media (max-width: 576px) {
   .modernCartItem {
     flex-direction: column;
+    padding: var(--spacing-md);
   }
   
   .itemImage {
+    flex: 0 0 auto;
+    width: 100%;
     margin-right: 0;
     margin-bottom: var(--spacing-md);
-    max-width: 100%;
+    height: 200px;
+    position: relative;
+  }
+  
+  .itemImage img {
+    object-fit: cover;
+    width: 100%;
+    height: 100%;
   }
   
   .itemPricing {
     flex-direction: column;
     align-items: flex-start;
+    gap: var(--spacing-md);
   }
   
   .priceDetails {
-    margin-bottom: var(--spacing-sm);
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
   }
   
   .itemActions {
     width: 100%;
+    flex-direction: row;
     justify-content: space-between;
   }
   
+  .wishlistAction, .removeAction {
+    width: 48%;
+    padding: var(--spacing-sm);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-sm);
+    justify-content: center;
+  }
+  
   .productGrid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: var(--spacing-xs);
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  
+  .pageHeader {
+    padding: 40px 0 30px;
+    margin-top: 70px;
+  }
+  
+  .pageHeader h1 {
+    font-size: var(--font-size-xl);
+  }
+  
+  .summaryRow {
+    font-size: var(--font-size-xs);
+  }
+  
+  .summaryRow.total {
+    font-size: var(--font-size-base);
+  }
+  
+  .checkoutBtn {
+    padding: 12px 20px;
+    font-size: var(--font-size-sm);
+  }
+  
+  .emptyCartMessage h3 {
+    font-size: var(--font-size-lg);
+  }
+  
+  .shoppingBenefits {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 375px) {
+  .modernCartItem {
+    padding: var(--spacing-sm);
+  }
+  
+  .itemInfo h3 {
+    font-size: var(--font-size-base);
+  }
+  
+  .itemCategory, .itemSize, .itemColor {
+    margin-bottom: var(--spacing-sm);
+  }
+  
+  .itemActions {
+    flex-direction: column;
+    gap: var(--spacing-sm);
+  }
+  
+  .wishlistAction, .removeAction {
+    width: 100%;
+    padding: var(--spacing-xs) var(--spacing-sm);
+  }
+  
+  .productGrid {
+    gap: 15px;
+  }
+  
+  .couponSection {
+    flex-direction: column;
+  }
+  
+  .applyCoupon {
+    flex-direction: column;
+    gap: var(--spacing-sm);
+  }
+  
+  .applyCoupon input {
+    width: 100%;
+  }
+  
+  .applyCoupon button {
+    width: 100%;
   }
 } 

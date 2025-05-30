@@ -431,4 +431,186 @@
     margin-left: auto;
     margin-right: auto;
   }
+}
+
+/* iPhone 11 optimized footer styles */
+@media screen and (min-width: 375px) and (max-width: 414px) {
+  .footer {
+    padding: 40px 0 20px;
+  }
+  
+  .footerTop {
+    padding-bottom: 30px;
+    margin-bottom: 25px;
+  }
+  
+  .footerLogo {
+    font-size: 22px;
+    margin-bottom: 15px;
+  }
+  
+  .footerDesc {
+    font-size: 14px;
+    line-height: 1.5;
+    margin-bottom: 20px;
+  }
+  
+  .footerContact {
+    margin-bottom: 10px;
+  }
+  
+  .contactItem {
+    font-size: 14px;
+    margin-bottom: 8px;
+    padding-left: 25px;
+  }
+  
+  .contactItem svg {
+    font-size: 16px;
+    top: 2px;
+    left: 0;
+  }
+  
+  .footerTitle {
+    font-size: 16px;
+    margin-bottom: 15px;
+    padding-bottom: 8px;
+  }
+  
+  .footerNav {
+    gap: 8px;
+  }
+  
+  .footerLink {
+    font-size: 14px;
+    padding: 5px 0;
+  }
+  
+  .socialIcons {
+    margin-top: 20px;
+  }
+  
+  .socialIcon {
+    width: 36px;
+    height: 36px;
+    font-size: 16px;
+  }
+  
+  .footerBottom {
+    padding-top: 15px;
+    flex-direction: column;
+    gap: 10px;
+    text-align: center;
+  }
+  
+  .copyright {
+    font-size: 13px;
+  }
+  
+  .paymentMethods {
+    margin-top: 10px;
+  }
+  
+  .paymentMethod {
+    height: 20px;
+    margin: 0 4px;
+  }
+
+  .footerGrid {
+    grid-template-columns: 1fr;
+    gap: 25px;
+  }
+  
+  .footerCol {
+    margin-bottom: 0;
+  }
+  
+  .subscribeForm {
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 15px;
+  }
+  
+  .subscribeInput {
+    width: 100%;
+    height: 45px;
+    padding: 0 15px;
+    font-size: 14px;
+    border-radius: 8px;
+  }
+  
+  .subscribeButton {
+    width: 100%;
+    height: 45px;
+    border-radius: 8px;
+    font-size: 14px;
+  }
+  
+  .collapseTitle {
+    padding: 12px 0;
+    font-size: 16px;
+  }
+  
+  .collapseContent {
+    padding-bottom: 12px;
+  }
+}
+
+/* Improved mobile footer styles */
+@media (max-width: 767px) {
+  .footerGrid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  
+  .footerCol {
+    margin-bottom: 15px;
+  }
+  
+  .footerCol:last-child {
+    margin-bottom: 0;
+  }
+  
+  .footerTitle {
+    position: relative;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .footerTitle::after {
+    content: '+';
+    font-size: 18px;
+    transition: transform 0.3s ease;
+  }
+  
+  .footerTitle.active::after {
+    content: '-';
+  }
+  
+  .collapseContent {
+    display: none;
+    padding-top: 10px;
+  }
+  
+  .collapseContent.active {
+    display: block;
+  }
+  
+  .footerBottom {
+    flex-direction: column;
+    gap: 15px;
+    text-align: center;
+  }
+  
+  .copyright, .policies {
+    width: 100%;
+    text-align: center;
+  }
+  
+  .paymentMethods {
+    justify-content: center;
+    margin-top: 15px;
+  }
 } 

@@ -331,13 +331,13 @@ const CartPage = () => {
               </div>
             </div>
           ) : (
-            <div className={styles.emptyCartMessage}>
-              <div className={styles.emptyCartIcon}>
+            <div className={`${styles.emptyCartMessage} emptyCartMessage`}>
+              <div className={`${styles.emptyCartIcon} emptyCartIcon`}>
                 <FaRegSadTear />
               </div>
               <h3>Your shopping bag is empty</h3>
               <p>Looks like you haven't added anything to your bag yet. Start shopping to fill it with awesome products!</p>
-              <Link href="/products" className={styles.continueShoppingBtn}>
+              <Link href="/products" className={`${styles.continueShoppingBtn} continueShoppingBtn`}>
                 Continue Shopping
               </Link>
             </div>

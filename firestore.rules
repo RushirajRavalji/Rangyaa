@@ -1,0 +1,32 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Allow authenticated users to read all documents
+    match /{document=**} {
+      allow read: if request.auth != null;
+    }
+    
+    // Allow authenticated users to write to products collection
+    match /products/{productId} {
+      allow write: if request.auth != null;
+    }
+    
+    // Allow authenticated users to write to categories collection
+    match /categories/{categoryId} {
+      allow write: if request.auth != null;
+    }
+    
+    // Allow users to read and write their own user data
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Allow authenticated users to write to orders collection
+    match /orders/{orderId} {
+      allow create: if request.auth != null;
+      allow read, update, delete: if request.auth != null && 
+        (resource.data.userId == request.auth.uid || request.auth.token.admin == true);
+    }
+  }
+} 

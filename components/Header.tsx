@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { FaSearch, FaUser, FaShoppingBag, FaGlobe, FaChevronRight, FaHeart, FaSignOutAlt, FaHome, FaTshirt, FaBoxOpen } from 'react-icons/fa';
+import { FaSearch, FaUser, FaShoppingBag, FaGlobe, FaChevronRight, FaHeart, FaSignOutAlt, FaHome, FaTshirt, FaBoxOpen, FaTimes } from 'react-icons/fa';
 import { navigation } from '../data/navigation';
 import styles from '../styles/Header.module.css';
 import { useCart } from '../context/CartContext';
@@ -70,158 +70,159 @@ const Header = () => {
   };
 
   return (
-    <header className={`${styles.header} ${isScrolled ? styles.scrolled : ''}`}>
-      <div className="container">
-        <div className={styles.headerContainer}>
-          {/* Left side: Navigation categories */}
-          <div className={styles.headerLeft}>
-            <nav className={styles.navCategories}>
-              {navigation.map((item) => (
-                <div key={item.label} className={item.dropdown ? styles.dropdown : ''}>
-                  <Link 
-                    href={item.href}
-                    className={`${styles.navLink} ${
-                      item.label === 'New Arrivals' ? styles.navNewArrivals : ''
-                    }`}
-                  >
-                    {item.label}
-                  </Link>
-                  {item.dropdown && (
-                    <div className={styles.dropdownContent}>
-                      {item.dropdown.map((dropdownItem) => (
-                        <Link key={dropdownItem.label} href={dropdownItem.href}>
-                          {dropdownItem.label}
-                        </Link>
-                      ))}
-                    </div>
+    <>
+      <header className={`${styles.header} ${isScrolled ? styles.scrolled : ''}`}>
+        <div className="container">
+          <div className={styles.headerContainer}>
+            {/* Left side: Navigation categories */}
+            <div className={styles.headerLeft}>
+              <nav className={styles.navCategories}>
+                {navigation.map((item) => (
+                  <div key={item.label} className={item.dropdown ? styles.dropdown : ''}>
+                    <Link 
+                      href={item.href}
+                      className={`${styles.navLink} ${
+                        item.label === 'New Arrivals' ? styles.navNewArrivals : ''
+                      }`}
+                    >
+                      {item.label}
+                    </Link>
+                    {item.dropdown && (
+                      <div className={styles.dropdownContent}>
+                        {item.dropdown.map((dropdownItem) => (
+                          <Link key={dropdownItem.label} href={dropdownItem.href}>
+                            {dropdownItem.label}
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </nav>
+            </div>
+            
+            {/* Center: Logo */}
+            <Link href="/" className={styles.logo}>Nikhil&apos;s Jeans</Link>
+            
+            {/* Right side: Icons */}
+            <div className={styles.headerRight}>
+              <div className={styles.languageSelector}>
+                <Link href="#" className={styles.navLink}>
+                  <span className={styles.langIcon}>EN</span>
+                </Link>
+                <div className={styles.dropdownContent}>
+                  <Link href="#">EN</Link>
+                  <Link href="#">FR</Link>
+                  <Link href="#">DE</Link>
+                  <Link href="#">ES</Link>
+                </div>
+              </div>
+              
+              <button 
+                className={`${styles.iconLink} ${styles.tapHighlight}`} 
+                aria-label="Search"
+                onClick={toggleSearch}
+              >
+                <FaSearch />
+              </button>
+              
+              <div className={styles.userDropdown}>
+                <Link href="/account" className={`${styles.iconLink} ${styles.tapHighlight}`} aria-label="Account">
+                  <FaUser />
+                </Link>
+                <div className={styles.dropdownContent}>
+                  {user ? (
+                    <>
+                      <div className={styles.userInfo}>
+                        <p>Hello, {user.name}</p>
+                      </div>
+                      <Link href="/account">My Account</Link>
+                      <Link href="/orders">My Orders</Link>
+                      <Link href="/wishlist">My Wishlist</Link>
+                      {user.email === 'driger.ray.dranzer@gmail.com' && (
+                        <>
+                          <Link href="/admin/orders" style={{ color: '#0a2472', fontWeight: 600 }}>Admin Panel</Link>
+                        </>
+                      )}
+                      <button onClick={handleLogout} className={styles.logoutButton}>
+                        <FaSignOutAlt /> Logout
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <Link href="/login">Login</Link>
+                      <Link href="/register">Register</Link>
+                    </>
                   )}
                 </div>
-              ))}
-            </nav>
-          </div>
-          
-          {/* Center: Logo */}
-          <Link href="/" className={styles.logo}>Nikhil&apos;s Jeans</Link>
-          
-          {/* Right side: Icons */}
-          <div className={styles.headerRight}>
-            <div className={styles.languageSelector}>
-              <Link href="#" className={styles.navLink}>
-                <span className={styles.langIcon}>EN</span>
-              </Link>
-              <div className={styles.dropdownContent}>
-                <Link href="#">EN</Link>
-                <Link href="#">FR</Link>
-                <Link href="#">DE</Link>
-                <Link href="#">ES</Link>
               </div>
-            </div>
-            <button 
-              className={`${styles.iconLink} ${styles.tapHighlight}`} 
-              aria-label="Search"
-              onClick={toggleSearch}
-            >
-              <FaSearch />
-            </button>
-            
-            <div className={styles.userDropdown}>
-              <Link href="/account" className={`${styles.iconLink} ${styles.tapHighlight}`} aria-label="Account">
-                <FaUser />
+              
+              <Link href="/wishlist" className={`${styles.iconLink} ${styles.tapHighlight}`} aria-label="Wishlist">
+                <FaHeart />
               </Link>
-              <div className={styles.dropdownContent}>
-                {user ? (
-                  <>
-                    <div className={styles.userInfo}>
-                      <p>Hello, {user.name}</p>
-                    </div>
-                    <Link href="/account">My Account</Link>
-                    <Link href="/orders">My Orders</Link>
-                    <Link href="/wishlist">My Wishlist</Link>
-                    {user.email === 'driger.ray.dranzer@gmail.com' && (
-                      <>
-                        <Link href="/admin/orders" style={{ color: '#0a2472', fontWeight: 600 }}>Admin Panel</Link>
-                      </>
-                    )}
-                    <button onClick={handleLogout} className={styles.logoutButton}>
-                      <FaSignOutAlt /> Logout
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <Link href="/login">Login</Link>
-                    <Link href="/register">Register</Link>
-                  </>
+              
+              <div className={styles.cartIcon}>
+                <Link href="/cart" className={`${styles.iconLink} ${styles.tapHighlight}`} aria-label="Shopping Cart">
+                  <FaShoppingBag />
+                </Link>
+                {getCartCount() > 0 && (
+                  <span className={styles.cartCount}>{getCartCount()}</span>
                 )}
               </div>
             </div>
             
-            <Link href="/wishlist" className={`${styles.iconLink} ${styles.tapHighlight}`} aria-label="Wishlist">
-              <FaHeart />
-            </Link>
-            
-            <div className={styles.cartIcon}>
-              <Link href="/cart" className={`${styles.iconLink} ${styles.tapHighlight}`} aria-label="Shopping Cart">
-                <FaShoppingBag />
-              </Link>
-              {getCartCount() > 0 && (
-                <span className={styles.cartCount}>{getCartCount()}</span>
-              )}
+            {/* Mobile header with symmetric layout */}
+            <div className={styles.iconGroup}>
+              {/* Left side icon(s) */}
+              <div className={styles.cartIcon}>
+                <Link href="/cart" className={`${styles.iconLink} ${styles.tapHighlight}`} aria-label="Shopping Cart">
+                  <FaShoppingBag />
+                </Link>
+                {getCartCount() > 0 && (
+                  <span className={styles.cartCount}>{getCartCount()}</span>
+                )}
+              </div>
             </div>
-          </div>
-          
-          {/* Mobile-only icons */}
-          <div className={styles.iconGroup}>
+            
+            {/* Mobile Navigation Menu Button - Right side */}
             <button 
-              className={`${styles.iconLink} ${styles.tapHighlight}`} 
-              aria-label="Search"
-              onClick={toggleSearch}
+              className={`${styles.hamburgerMenu} ${isMobileMenuOpen ? styles.active : ''} ${styles.tapHighlight}`} 
+              aria-label="Menu"
+              onClick={toggleMobileMenu}
             >
-              <FaSearch />
+              <span></span>
+              <span></span>
+              <span></span>
             </button>
-            
-            <Link href="/wishlist" className={`${styles.iconLink} ${styles.tapHighlight}`} aria-label="Wishlist">
-              <FaHeart />
-            </Link>
-            
-            <div className={styles.cartIcon}>
-              <Link href="/cart" className={`${styles.iconLink} ${styles.tapHighlight}`} aria-label="Shopping Cart">
-                <FaShoppingBag />
-              </Link>
-              {getCartCount() > 0 && (
-                <span className={styles.cartCount}>{getCartCount()}</span>
-              )}
-            </div>
           </div>
-          
-          {/* Mobile Navigation Menu Button */}
-          <button 
-            className={`${styles.hamburgerMenu} ${isMobileMenuOpen ? styles.active : ''} ${styles.tapHighlight}`} 
-            aria-label="Menu"
-            onClick={toggleMobileMenu}
-          >
-            <span></span>
-            <span></span>
-            <span></span>
-          </button>
         </div>
-      </div>
+      </header>
+
+      {/* Mobile Menu Backdrop */}
+      <div 
+        className={`${styles.menuBackdrop} ${isMobileMenuOpen ? styles.active : ''}`} 
+        onClick={toggleMobileMenu}
+      ></div>
 
       {/* Mobile Menu */}
       <div className={`${styles.mobileMenu} ${isMobileMenuOpen ? styles.active : ''}`}>
         <div className={styles.mobileMenuHeader}>
-          <span>Menu</span>
+          <span>MENU</span>
+          <button className={styles.closeButton} onClick={toggleMobileMenu}>
+            <FaTimes />
+          </button>
         </div>
         
         <div className={styles.mobileMenuSection}>
-          <h3>Categories</h3>
+          <h3>CATEGORIES</h3>
           <nav className={styles.mobileNav}>
             <Link 
               href="/" 
-              className={`${styles.navLink} ${styles.tapHighlight}`}
-              style={{ '--i': 1 } as React.CSSProperties}
+              className={styles.navLink}
+              onClick={() => setIsMobileMenuOpen(false)}
             >
               <FaHome />
-              Home
+              HOME
             </Link>
             
             {navigation.map((item, index) => (
@@ -230,14 +231,13 @@ const Header = () => {
                   <>
                     <Link 
                       href="#"
-                      className={`${styles.navLink} ${styles.hasSubmenu} ${activeSubmenu === item.label ? styles.open : ''} ${styles.tapHighlight}`}
-                      style={{ '--i': index + 2 } as React.CSSProperties}
+                      className={`${styles.navLink} ${styles.hasSubmenu} ${activeSubmenu === item.label ? styles.open : ''}`}
                       onClick={(e) => {
                         e.preventDefault();
                         toggleSubmenu(item.label);
                       }}
                     >
-                      {item.label === 'Men' || item.label === 'Women' ? <FaTshirt /> : <FaBoxOpen />}
+                      <FaTshirt />
                       {item.label}
                       <FaChevronRight />
                     </Link>
@@ -246,7 +246,7 @@ const Header = () => {
                         <Link 
                           key={dropdownItem.label} 
                           href={dropdownItem.href}
-                          className={styles.tapHighlight}
+                          onClick={() => setIsMobileMenuOpen(false)}
                         >
                           {dropdownItem.label}
                         </Link>
@@ -256,10 +256,10 @@ const Header = () => {
                 ) : (
                   <Link 
                     href={item.href}
-                    className={`${styles.navLink} ${styles.tapHighlight}`}
-                    style={{ '--i': index + 2 } as React.CSSProperties}
+                    className={styles.navLink}
+                    onClick={() => setIsMobileMenuOpen(false)}
                   >
-                    {item.label === 'New Arrivals' ? <FaBoxOpen /> : <FaTshirt />}
+                    <FaBoxOpen />
                     {item.label}
                   </Link>
                 )}
@@ -267,113 +267,13 @@ const Header = () => {
             ))}
           </nav>
         </div>
-        
-        <div className={styles.mobileMenuSection}>
-          <h3>My Account</h3>
-          <nav className={styles.mobileNav}>
-            <Link 
-              href="/wishlist" 
-              className={`${styles.navLink} ${styles.tapHighlight}`}
-              style={{ '--i': navigation.length + 2 } as React.CSSProperties}
-            >
-              <FaHeart />
-              Wishlist
-            </Link>
-            
-            {user ? (
-              <>
-                <Link 
-                  href="/account" 
-                  className={`${styles.navLink} ${styles.tapHighlight}`}
-                  style={{ '--i': navigation.length + 3 } as React.CSSProperties}
-                >
-                  <FaUser />
-                  My Account
-                </Link>
-                <Link 
-                  href="/orders" 
-                  className={`${styles.navLink} ${styles.tapHighlight}`}
-                  style={{ '--i': navigation.length + 4 } as React.CSSProperties}
-                >
-                  <FaBoxOpen />
-                  My Orders
-                </Link>
-                {user.email === 'driger.ray.dranzer@gmail.com' && (
-                  <Link 
-                    href="/admin/orders" 
-                    className={`${styles.navLink} ${styles.tapHighlight}`}
-                    style={{ '--i': navigation.length + 5, color: '#0a2472', fontWeight: 600 } as React.CSSProperties}
-                  >
-                    <FaUser />
-                    Admin Panel
-                  </Link>
-                )}
-                <button 
-                  onClick={handleLogout} 
-                  className={`${styles.logoutButton} ${styles.tapHighlight}`}
-                  style={{ '--i': navigation.length + 6 } as React.CSSProperties}
-                >
-                  <FaSignOutAlt /> 
-                  Logout
-                </button>
-              </>
-            ) : (
-              <>
-                <Link 
-                  href="/login" 
-                  className={`${styles.navLink} ${styles.tapHighlight}`}
-                  style={{ '--i': navigation.length + 3 } as React.CSSProperties}
-                >
-                  <FaUser />
-                  Login
-                </Link>
-                <Link 
-                  href="/register" 
-                  className={`${styles.navLink} ${styles.tapHighlight}`}
-                  style={{ '--i': navigation.length + 4 } as React.CSSProperties}
-                >
-                  <FaUser />
-                  Register
-                </Link>
-              </>
-            )}
-          </nav>
-        </div>
-        
-        <div className={styles.mobileMenuSection}>
-          <h3>Language</h3>
-          <nav className={styles.mobileNav}>
-            <Link 
-              href="#" 
-              className={`${styles.navLink} ${styles.tapHighlight}`}
-              style={{ '--i': navigation.length + 7 } as React.CSSProperties}
-            >
-              <FaGlobe />
-              English
-            </Link>
-            <Link 
-              href="#" 
-              className={`${styles.navLink} ${styles.tapHighlight}`}
-              style={{ '--i': navigation.length + 8 } as React.CSSProperties}
-            >
-              <FaGlobe />
-              Hindi
-            </Link>
-          </nav>
-        </div>
       </div>
-      
-      {/* Mobile Menu Backdrop */}
-      <div 
-        className={`${styles.menuBackdrop} ${isMobileMenuOpen ? styles.active : ''}`}
-        onClick={toggleMobileMenu}
-      ></div>
 
       {/* Search Overlay */}
       {isSearchOpen && (
-        <Search onClose={() => setIsSearchOpen(false)} />
+        <Search onClose={toggleSearch} />
       )}
-    </header>
+    </>
   );
 };
 

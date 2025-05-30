@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { GetStaticProps, GetStaticPaths } from 'next';
-import Image from 'next/image';
 import Link from 'next/link';
 import { FaHeart, FaRegHeart, FaShoppingCart, FaCheck, FaRuler } from 'react-icons/fa';
 import Layout from '../../components/Layout';
@@ -9,6 +8,7 @@ import SizeGuide from '../../components/SizeGuide';
 import { products, Product } from '../../data/products';
 import { useCart } from '../../context/CartContext';
 import styles from '../../styles/ProductDetail.module.css';
+import Base64Image from '../../components/Base64Image';
 
 // Sample reviews for demonstration
 const sampleReviews = [
@@ -113,13 +113,11 @@ export default function ProductPage({ product, relatedProducts }: ProductPagePro
           <div className={styles.productContainer}>
             <div className={styles.productImageContainer}>
               <div className={styles.productImage}>
-                <Image
+                <Base64Image
                   src={product.gallery ? product.gallery[selectedImage] : product.image}
                   alt={product.name}
-                  fill
-                  sizes="(max-width: 768px) 100vw, 50vw"
-                  style={{ objectFit: 'cover' }}
-                  priority
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  priority={true}
                 />
                 {discountPercent > 0 && (
                   <span className={styles.discountBadge}>-{discountPercent}%</span>
@@ -138,7 +136,7 @@ export default function ProductPage({ product, relatedProducts }: ProductPagePro
                       className={`${styles.thumbnail} ${selectedImage === index ? styles.active : ''}`}
                       onClick={() => setSelectedImage(index)}
                     >
-                      <Image 
+                      <Base64Image 
                         src={image} 
                         alt={`${product.name} - Image ${index + 1}`}
                         width={80}
@@ -386,12 +384,10 @@ export default function ProductPage({ product, relatedProducts }: ProductPagePro
                 <div key={relProduct.id} className={styles.relatedProduct}>
                   <Link href={`/product/${relProduct.id}`} className={styles.relatedProductLink}>
                     <div className={styles.relatedProductImage}>
-                      <Image
+                      <Base64Image
                         src={relProduct.image}
                         alt={relProduct.name}
-                        fill
-                        sizes="(max-width: 768px) 50vw, 25vw"
-                        style={{ objectFit: 'cover' }}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                       />
                     </div>
                     <div className={styles.relatedProductInfo}>
