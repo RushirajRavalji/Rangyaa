@@ -206,13 +206,32 @@ export default function JeansPage({ products }: CategoryPageProps) {
 }
 
 export const getStaticProps: GetStaticProps = async () => {
-  // Get all jeans products for men
-  const products = getProductsBySubcategory('jeans').filter(product => product.category === 'men');
-  
-  return {
-    props: {
-      products,
-    },
-    revalidate: 60 * 60, // Revalidate every hour
-  };
+  try {
+    // Import Firebase functions
+    const { getProductsByCategory } = await import('../../utils/firestore');
+    
+    // Get men's jeans products from Firebase
+    const products = await getProductsByCategory('jeans');
+    
+    // Filter for men's products only
+    const mensJeans = products.filter(product => 
+      product.category.toLowerCase() === 'men' || 
+      product.category.toLowerCase() === 'mens'
+    );
+    
+    return {
+      props: {
+        products: mensJeans,
+      },
+      revalidate: 60 * 60, // Revalidate every hour
+    };
+  } catch (error) {
+    console.error('Error fetching men\'s jeans:', error);
+    return {
+      props: {
+        products: [],
+      },
+      revalidate: 60, // Retry sooner if there was an error
+    };
+  }
 }; 

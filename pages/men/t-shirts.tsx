@@ -1,18 +1,46 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Layout from '../../components/Layout';
 import ProductCard from '../../components/ProductCard';
 import { Product } from '../../data/products';
-import { useProducts } from '../../context/ProductContext';
 import { FaSpinner } from 'react-icons/fa';
 import styles from '../../styles/Products.module.css';
 import { useCart } from '../../context/CartContext';
 import QuickView from '../../components/QuickView';
+import * as firestoreAPI from '../../utils/firestore';
 
 export default function TShirtsPage() {
-  const { loading, error, getProductsInCategory } = useProducts();
   const { addToCart } = useCart();
-  const tshirtsProducts = getProductsInCategory('t-shirts');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [tshirtsProducts, setTshirtsProducts] = useState<Product[]>([]);
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
+  
+  // Fetch t-shirts products from Firebase
+  useEffect(() => {
+    const fetchTShirts = async () => {
+      try {
+        setLoading(true);
+        
+        // Get t-shirts products from Firebase
+        const products = await firestoreAPI.getProductsByCategory('t-shirts');
+        
+        // Filter for men's t-shirts only
+        const mensTShirts = products.filter(product => 
+          product.category.toLowerCase() === 'men' || 
+          product.category.toLowerCase() === 'mens'
+        );
+        
+        setTshirtsProducts(mensTShirts);
+        setLoading(false);
+      } catch (err) {
+        console.error('Error fetching t-shirts:', err);
+        setError('Failed to load t-shirts. Please try again later.');
+        setLoading(false);
+      }
+    };
+    
+    fetchTShirts();
+  }, []);
   
   const handleQuickView = (product: Product) => {
     setQuickViewProduct(product);

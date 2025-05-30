@@ -74,159 +74,26 @@ export default function Home() {
   
   const { addToCart } = useCart();
 
-  // Fetch products
+  // Fetch products from Firestore
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        // Simulate API call with a timeout
-        setTimeout(() => {
-          // This would normally be an API call
-          // Using dummy data for now
-          const dummyFeatured: Product[] = [
-            {
-              id: '1',
-              name: 'Classic Blue Jeans',
-              price: 1999,
-              description: 'Classic straight fit blue jeans with comfort stretch.',
-              category: 'Men',
-              image: '/images/products/jeans-1.jpg',
-              gallery: ['/images/products/jeans-1.jpg', '/images/products/jeans-1-alt.jpg'],
-              featured: true,
-              new: false,
-              stock: 25,
-              rating: 4.5,
-              reviews: 12,
-              sizes: ['30', '32', '34', '36'],
-              colors: [{ name: 'Blue', code: '#0a4b9f' }],
-              discount: 15,
-              originalPrice: 1999
-            },
-            {
-              id: '2',
-              name: 'Slim Fit Black Jeans',
-              price: 2299,
-              description: 'Modern slim fit black jeans with premium denim.',
-              category: 'Men',
-              image: '/images/products/jeans-2.jpg',
-              gallery: ['/images/products/jeans-2.jpg'],
-              featured: true,
-              new: true,
-              stock: 18,
-              rating: 4.7,
-              reviews: 8,
-              sizes: ['30', '32', '34', '36'],
-              colors: [{ name: 'Black', code: '#000000' }]
-            },
-            {
-              id: '3',
-              name: 'High-Rise Skinny Jeans',
-              price: 2499,
-              description: 'High-rise skinny jeans with sculpting effect.',
-              category: 'Women',
-              image: '/images/products/jeans-3.jpg',
-              gallery: ['/images/products/jeans-3.jpg'],
-              featured: true,
-              new: false,
-              stock: 15,
-              rating: 4.8,
-              reviews: 16,
-              sizes: ['26', '28', '30', '32'],
-              colors: [{ name: 'Blue', code: '#0a4b9f' }],
-              discount: 20,
-              originalPrice: 2499
-            },
-            {
-              id: '4',
-              name: 'Relaxed Fit Denim Jacket',
-              price: 2799,
-              description: 'Classic denim jacket with a relaxed fit.',
-              category: 'Men',
-              image: '/images/products/jacket-1.jpg',
-              gallery: ['/images/products/jacket-1.jpg'],
-              featured: true,
-              new: true,
-              stock: 10,
-              rating: 4.6,
-              reviews: 7,
-              sizes: ['S', 'M', 'L', 'XL'],
-              colors: [{ name: 'Blue', code: '#0a4b9f' }]
-            }
-          ];
-
-          const dummyNewArrivals: Product[] = [
-            {
-              id: '5',
-              name: 'Distressed Boyfriend Jeans',
-              price: 2599,
-              description: 'Trendy distressed boyfriend jeans with a relaxed fit.',
-              category: 'Women',
-              image: '/images/products/jeans-4.jpg',
-              gallery: ['/images/products/jeans-4.jpg'],
-              featured: false,
-              new: true,
-              stock: 12,
-              rating: 4.3,
-              reviews: 5,
-              sizes: ['26', '28', '30', '32'],
-              colors: [{ name: 'Blue', code: '#0a4b9f' }]
-            },
-            {
-              id: '6',
-              name: 'Bootcut Jeans',
-              price: 2399,
-              description: 'Classic bootcut jeans with a flattering silhouette.',
-              category: 'Women',
-              image: '/images/products/jeans-5.jpg',
-              gallery: ['/images/products/jeans-5.jpg'],
-              featured: false,
-              new: true,
-              stock: 8,
-              rating: 4.5,
-              reviews: 4,
-              sizes: ['26', '28', '30', '32'],
-              colors: [{ name: 'Blue', code: '#0a4b9f' }],
-              discount: 16,
-              originalPrice: 2399
-            },
-            {
-              id: '7',
-              name: 'Denim Shirt',
-              price: 1899,
-              description: 'Versatile denim shirt perfect for casual outings.',
-              category: 'Men',
-              image: '/images/products/shirt-1.jpg',
-              gallery: ['/images/products/shirt-1.jpg'],
-              featured: false,
-              new: true,
-              stock: 20,
-              rating: 4.4,
-              reviews: 6,
-              sizes: ['S', 'M', 'L', 'XL'],
-              colors: [{ name: 'Blue', code: '#0a4b9f' }]
-            },
-            {
-              id: '8',
-              name: 'Tapered Fit Jeans',
-              price: 2199,
-              description: 'Modern tapered fit jeans with stretch comfort.',
-              category: 'Men',
-              image: '/images/products/jeans-6.jpg',
-              gallery: ['/images/products/jeans-6.jpg'],
-              featured: false,
-              new: true,
-              stock: 15,
-              rating: 4.6,
-              reviews: 3,
-              sizes: ['30', '32', '34', '36'],
-              colors: [{ name: 'Blue', code: '#0a4b9f' }]
-            }
-          ];
-
-          setFeaturedProducts(dummyFeatured);
-          setNewArrivalsProducts(dummyNewArrivals);
-          setLoading(false);
-        }, 1500);
+        setLoading(true);
+        
+        // Import firestoreAPI to use Firebase functions
+        const firestoreAPI = await import('../utils/firestore');
+        
+        // Get featured products from Firebase
+        const featured = await firestoreAPI.getFeaturedProducts(4);
+        setFeaturedProducts(featured);
+        
+        // Get new arrivals from Firebase
+        const newArrivals = await firestoreAPI.getNewArrivals(4);
+        setNewArrivalsProducts(newArrivals);
+        
+        setLoading(false);
       } catch (err) {
+        console.error('Error fetching products:', err);
         setError('Failed to load products. Please try again later.');
         setLoading(false);
       }

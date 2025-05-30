@@ -31,5 +31,9 @@
       "static/css/e637603dd34322d8.css",
       "static/chunks/175-9fcec2139b3ae5c1.js"
     ]
+  },
+  "index.tsx -> ../utils/firestore": {
+    "id": 5200,
+    "files": []
   }
 }

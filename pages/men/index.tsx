@@ -2,23 +2,48 @@ import { useEffect, useState } from 'react';
 import Layout from '../../components/Layout';
 import Hero from '../../components/Hero';
 import ProductCard from '../../components/ProductCard';
-import { useProducts } from '../../context/ProductContext';
 import { FaSpinner } from 'react-icons/fa';
 import styles from '../../styles/Products.module.css';
 import Link from 'next/link';
 import { Product } from '../../data/products';
 import { useCart } from '../../context/CartContext';
 import QuickView from '../../components/QuickView';
+import * as firestoreAPI from '../../utils/firestore';
 
 export default function MenPage() {
-  const { loading, error, products } = useProducts();
-  const { addToCart } = useCart();
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [menProducts, setMenProducts] = useState<Product[]>([]);
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
+  const { addToCart } = useCart();
   
-  // Filter for men's products (jeans, shirts, t-shirts and any future men's categories)
-  const menProducts = products.filter(product => 
-    ['jeans', 'shirts', 't-shirts', 'trousers', 'joggers'].includes(product.category)
-  );
+  // Fetch men's products from Firebase
+  useEffect(() => {
+    const fetchMensProducts = async () => {
+      try {
+        setLoading(true);
+        
+        // Get all products from Firebase
+        const allProducts = await firestoreAPI.getAllProducts();
+        
+        // Filter for men's products
+        const mensProducts = allProducts.filter(product => 
+          (product.category.toLowerCase() === 'men' || 
+           product.category.toLowerCase() === 'mens') &&
+          ['jeans', 'shirts', 't-shirts', 'trousers', 'joggers'].includes(product.subcategory || '')
+        );
+        
+        setMenProducts(mensProducts);
+        setLoading(false);
+      } catch (err) {
+        console.error('Error fetching men\'s products:', err);
+        setError('Failed to load men\'s products. Please try again later.');
+        setLoading(false);
+      }
+    };
+    
+    fetchMensProducts();
+  }, []);
 
   const handleQuickView = (product: Product) => {
     setQuickViewProduct(product);
