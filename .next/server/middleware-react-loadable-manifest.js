@@ -1,1 +1,1 @@
-self.__REACT_LOADABLE_MANIFEST="{}"
+self.__REACT_LOADABLE_MANIFEST="{\"admin\\\\products.tsx -> ./products-client\":{\"id\":\"admin\\\\products.tsx -> ./products-client\",\"files\":[\"static/chunks/pages_admin_products-client_tsx.js\"]},\"index.tsx -> ../utils/firestore\":{\"id\":\"index.tsx -> ../utils/firestore\",\"files\":[]}}"

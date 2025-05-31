@@ -91,11 +91,11 @@ export const getAllProducts = async (pageSize: number = 0): Promise<Product[]> =
   try {
     // If cache is valid and we're not paginating, return cached products
     if (isCacheValid() && pageSize === 0 && productCache.all) {
-      console.log('Returning products from cache');
+      console.log(`Returning ${productCache.all.length} products from cache`);
       return productCache.all;
     }
     
-    console.log('Fetching products from Firestore');
+    console.log('Cache invalid or empty, fetching products from Firestore...');
     
     let productsQuery = query(productsCollection, orderBy('createdAt', 'desc'));
     
@@ -104,11 +104,19 @@ export const getAllProducts = async (pageSize: number = 0): Promise<Product[]> =
       productsQuery = query(productsQuery, limit(pageSize));
     }
     
+    console.log('Executing Firestore query...');
     const snapshot = await getDocs(productsQuery);
-    const products = snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    } as Product));
+    console.log(`Raw Firestore query returned ${snapshot.docs.length} documents`);
+    
+    const products = snapshot.docs.map(doc => {
+      const data = doc.data();
+      // Log each product for debugging
+      console.log(`Processing product: ${doc.id} - ${data.name || 'Unnamed product'}`);
+      return {
+        id: doc.id,
+        ...data
+      } as Product;
+    });
     
     // Update cache if we're getting all products
     if (pageSize === 0) {
@@ -129,7 +137,7 @@ export const getAllProducts = async (pageSize: number = 0): Promise<Product[]> =
       productCache.lastFetched = Date.now();
     }
     
-    console.log(`Retrieved ${products.length} products from Firestore`);
+    console.log(`Successfully processed and returning ${products.length} products from Firestore`);
     return products;
   } catch (error) {
     console.error('Error getting products from Firestore:', error);
@@ -405,6 +413,11 @@ const getStorageInstance = () => {
 // Upload image to Firebase Storage
 export const uploadProductImage = async (file: File): Promise<string> => {
   try {
+    // Check file size (limit to 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      throw new Error('Image file is too large. Please select an image smaller than 5MB.');
+    }
+    
     // Convert file to base64
     const base64String = await fileToBase64(file);
     
@@ -425,17 +438,33 @@ export const uploadProductImage = async (file: File): Promise<string> => {
     return `base64://${imageDoc.id}`;
   } catch (error) {
     console.error('Error uploading image:', error);
-    throw new Error('Failed to upload product image');
+    if (error instanceof Error) {
+      throw error;
+    } else {
+      throw new Error('Failed to upload product image. Please try again.');
+    }
   }
 };
 
 // Helper function to convert File to base64
 const fileToBase64 = (file: File): Promise<string> => {
   return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = () => resolve(reader.result as string);
-    reader.onerror = error => reject(error);
+    try {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => {
+        if (typeof reader.result === 'string') {
+          resolve(reader.result);
+        } else {
+          reject(new Error('Failed to read image file'));
+        }
+      };
+      reader.onerror = () => {
+        reject(new Error('Error reading image file. Please try a different image.'));
+      };
+    } catch (error) {
+      reject(error instanceof Error ? error : new Error('Unknown error processing image'));
+    }
   });
 };
 

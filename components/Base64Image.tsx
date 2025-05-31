@@ -54,14 +54,36 @@ const Base64Image: React.FC<Base64ImageProps> = ({
         if (src.startsWith('base64://')) {
           console.log(`Loading base64 image: ${src}`);
           const imageId = src.replace('base64://', '');
-          const base64Data = await getImageById(imageId);
+          
+          // Try loading the image up to 3 times
+          let retries = 0;
+          let base64Data = null;
+          
+          while (retries < 3 && !base64Data) {
+            try {
+              base64Data = await getImageById(imageId);
+              if (!base64Data || base64Data === fallbackSrc) {
+                console.warn(`Retry ${retries + 1}: Failed to load base64 image: ${imageId}`);
+                retries++;
+                
+                // Short delay before retry
+                await new Promise(resolve => setTimeout(resolve, 500));
+              }
+            } catch (err) {
+              console.warn(`Retry ${retries + 1}: Error loading base64 image: ${imageId}`, err);
+              retries++;
+              
+              // Short delay before retry
+              await new Promise(resolve => setTimeout(resolve, 500));
+            }
+          }
           
           if (isMounted) {
             if (base64Data && base64Data !== fallbackSrc) {
               console.log(`Base64 image loaded successfully: ${imageId}`);
               setImageSrc(base64Data);
             } else {
-              console.error(`Failed to load base64 image: ${imageId}`);
+              console.error(`Failed to load base64 image after retries: ${imageId}`);
               setImageSrc(fallbackSrc);
               setError('Failed to load base64 image');
             }

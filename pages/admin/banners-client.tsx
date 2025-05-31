@@ -206,9 +206,10 @@ export default function AdminBannersClient() {
     try {
       setIsUploading(true);
       setUploadProgress(0);
+      setSubmitStatus(null); // Clear any previous status
 
       // Simulate progress (in a real app, you'd use Firebase's upload progress)
-      const progressInterval = setInterval(() => {
+      let progressInterval = setInterval(() => {
         setUploadProgress(prev => {
           if (prev >= 90) {
             clearInterval(progressInterval);
@@ -228,6 +229,12 @@ export default function AdminBannersClient() {
       clearInterval(progressInterval);
       setUploadProgress(100);
       
+      // Show success message
+      setSubmitStatus({
+        type: 'success',
+        message: 'Banner image uploaded successfully!'
+      });
+      
       // Reset after a short delay
       setTimeout(() => {
         setUploadProgress(0);
@@ -236,14 +243,27 @@ export default function AdminBannersClient() {
         if (fileInputRef.current) {
           fileInputRef.current.value = '';
         }
+        
+        // Clear success message
+        setTimeout(() => {
+          setSubmitStatus(null);
+        }, 2000);
       }, 1000);
       
     } catch (error) {
       console.error('Error uploading banner image:', error);
+      
+      // No need to clear interval here since it won't be defined if there's an error before it's created
+      
+      // Set specific error message
+      const errorMessage = error instanceof Error ? error.message : 'Failed to upload image. Please try again.';
+      setFormErrors(prev => ({ ...prev, imageUrl: errorMessage }));
+      
       setSubmitStatus({
         type: 'error',
-        message: 'Failed to upload image. Please try again.'
+        message: errorMessage
       });
+      
       setIsUploading(false);
       setUploadProgress(0);
     }
@@ -536,6 +556,7 @@ export default function AdminBannersClient() {
                     ref={fileInputRef}
                     className={styles.fileInput}
                     onChange={handleFileChange}
+                    capture="environment"
                   />
                   <label htmlFor="bannerImage" className={styles.uploadButton}>
                     <FaImage /> Select Image

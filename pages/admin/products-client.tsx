@@ -191,6 +191,7 @@ export default function AdminProductsClient() {
     
     try {
       setLoading(true);
+      setSubmitStatus(null); // Clear any previous status
       
       // Create a preview for immediate feedback
       const reader = new FileReader();
@@ -225,9 +226,17 @@ export default function AdminProductsClient() {
       }, 3000);
     } catch (error) {
       console.error('Error uploading image:', error);
+      setImagePreview(null); // Clear preview on error
+      
+      // Set image-specific error
+      setFormErrors(prev => ({
+        ...prev,
+        image: error instanceof Error ? error.message : 'Failed to upload image. Please try again.'
+      }));
+      
       setSubmitStatus({
         type: 'error',
-        message: 'Failed to upload image. Please try again.'
+        message: error instanceof Error ? error.message : 'Failed to upload image. Please try again.'
       });
     } finally {
       setLoading(false);
@@ -637,6 +646,7 @@ export default function AdminProductsClient() {
                       ref={fileInputRef}
                       className={formErrors.image ? styles.errorInput : ''}
                       style={{ display: 'none' }}
+                      capture="environment"
                     />
                     <button
                       type="button"

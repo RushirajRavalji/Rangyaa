@@ -13,6 +13,11 @@ const getStorageInstance = () => {
 // Upload banner image to Firebase Storage
 export const uploadBannerImage = async (file: File): Promise<string> => {
   try {
+    // Check file size (limit to 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      throw new Error('Image file is too large. Please select an image smaller than 5MB.');
+    }
+    
     const storageInstance = getStorageInstance();
     
     // Create a unique filename
@@ -30,7 +35,11 @@ export const uploadBannerImage = async (file: File): Promise<string> => {
     return downloadURL;
   } catch (error) {
     console.error('Error uploading banner image:', error);
-    throw new Error('Failed to upload banner image');
+    if (error instanceof Error) {
+      throw error;
+    } else {
+      throw new Error('Failed to upload banner image. Please try again.');
+    }
   }
 };
 

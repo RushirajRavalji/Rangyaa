@@ -57,8 +57,13 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
       setLoading(true);
       setError(null);
       
+      // Clear product cache to ensure fresh data
+      await firestoreAPI.clearProductCache();
+      
       // Get data from Firestore
+      console.log('Fetching products from Firestore in ProductContext');
       const fetchedProducts = await firestoreAPI.getAllProducts();
+      console.log(`Fetched ${fetchedProducts.length} products from Firestore`);
       
       // Get categories from Firestore
       // This is handled automatically by the Firestore API
