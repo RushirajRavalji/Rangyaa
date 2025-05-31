@@ -25,14 +25,42 @@ export default function MenPage() {
         
         // Get all products from Firebase
         const allProducts = await firestoreAPI.getAllProducts();
+        console.log(`Fetched ${allProducts.length} total products, filtering for men's collection`);
         
-        // Filter for men's products
-        const mensProducts = allProducts.filter(product => 
-          (product.category.toLowerCase() === 'men' || 
-           product.category.toLowerCase() === 'mens') &&
-          ['jeans', 'shirts', 't-shirts', 'trousers', 'joggers'].includes(product.subcategory || '')
-        );
+        // Filter for men's products - improved filtering logic with more debug info
+        const mensProducts = allProducts.filter(product => {
+          console.log(`Processing product: ${product.id} - ${product.name} - Category: ${product.category} - Subcategory: ${product.subcategory || 'none'} - Tags: ${product.tags?.join(', ') || 'none'}`);
+          
+          // Check if primary category is men
+          const isMensCategory = product.category?.toLowerCase() === 'men' || 
+                                product.category?.toLowerCase() === 'mens';
+          
+          // Check if product has men's in the subcategory
+          const hasMensSubcategory = product.subcategory?.toLowerCase()?.includes('men');
+          
+          // Check if product has men's in tags
+          const hasMensTag = product.tags && product.tags.some(tag => 
+            tag.toLowerCase() === 'men' || 
+            tag.toLowerCase() === 'mens' ||
+            tag.toLowerCase().startsWith('men-')
+          );
+          
+          // Check for valid men's product types
+          const validMensTypes = ['jeans', 'shirts', 't-shirts', 'trousers', 'joggers', 't-shirt', 'shirt'];
+          const isValidType = product.subcategory && 
+                             validMensTypes.some(type => product.subcategory?.toLowerCase()?.includes(type));
+          
+          // Product belongs to men's collection if it's directly in men's category
+          // OR if it has men in subcategory AND is a valid men's product type
+          // OR if it has a men's tag
+          const shouldInclude = isMensCategory || (hasMensSubcategory && isValidType) || hasMensTag;
+          
+          console.log(`Product ${product.name}: isMensCategory=${isMensCategory}, hasMensSubcategory=${hasMensSubcategory}, hasMensTag=${hasMensTag}, isValidType=${isValidType}, shouldInclude=${shouldInclude}`);
+          
+          return shouldInclude;
+        });
         
+        console.log(`Found ${mensProducts.length} men's products after filtering`);
         setMenProducts(mensProducts);
         setLoading(false);
       } catch (err) {

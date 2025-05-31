@@ -38,14 +38,69 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const organizeProductsByCategory = useCallback((allProducts: Product[]) => {
     const byCategory: Record<string, Product[]> = {};
     
+    // Log the organization process
+    console.log(`Organizing ${allProducts.length} products into categories...`);
+    
     allProducts.forEach(product => {
-      if (!product.category) return;
-      
-      if (!byCategory[product.category]) {
-        byCategory[product.category] = [];
+      // Skip products without category
+      if (!product.category) {
+        console.log(`Skipping product ${product.id} - ${product.name}: missing category`);
+        return;
       }
       
-      byCategory[product.category].push(product);
+      console.log(`Processing product ${product.id} - ${product.name}: Category=${product.category}, Subcategory=${product.subcategory || 'none'}`);
+      
+      // Add to main category (normalized to lowercase)
+      const mainCategory = product.category.toLowerCase();
+      if (!byCategory[mainCategory]) {
+        byCategory[mainCategory] = [];
+      }
+      byCategory[mainCategory].push(product);
+      
+      // Also add to subcategory if it exists (normalized to lowercase)
+      if (product.subcategory) {
+        const subcategory = product.subcategory.toLowerCase();
+        if (!byCategory[subcategory]) {
+          byCategory[subcategory] = [];
+        }
+        
+        // Check if product is already in this subcategory to avoid duplicates
+        if (!byCategory[subcategory].some(p => p.id === product.id)) {
+          byCategory[subcategory].push(product);
+        }
+        
+        // Also add to combined category-subcategory
+        const combinedCategory = `${mainCategory}-${subcategory}`;
+        if (!byCategory[combinedCategory]) {
+          byCategory[combinedCategory] = [];
+        }
+        
+        // Check if product is already in this combined category to avoid duplicates
+        if (!byCategory[combinedCategory].some(p => p.id === product.id)) {
+          byCategory[combinedCategory].push(product);
+        }
+      }
+      
+      // Add to tags-based categories if tags exist
+      if (Array.isArray(product.tags) && product.tags.length > 0) {
+        product.tags.forEach(tag => {
+          const normalizedTag = tag.toLowerCase();
+          if (!byCategory[normalizedTag]) {
+            byCategory[normalizedTag] = [];
+          }
+          
+          // Check if product is already in this tag category to avoid duplicates
+          if (!byCategory[normalizedTag].some(p => p.id === product.id)) {
+            byCategory[normalizedTag].push(product);
+          }
+        });
+      }
+    });
+    
+    // Log organized categories
+    console.log(`Organized ${allProducts.length} products into ${Object.keys(byCategory).length} categories`);
+    Object.keys(byCategory).forEach(category => {
+      console.log(`Category '${category}' has ${byCategory[category].length} products`);
     });
     
     setProductsByCategory(byCategory);
@@ -99,23 +154,14 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
         throw new Error('Product category is required');
       }
       
+      console.log('Adding new product:', product);
+      
       // Add product to Firestore
       const newProduct = await firestoreAPI.addProduct(product);
+      console.log('Product added with ID:', newProduct.id);
       
-      // Update local state
-      setProducts(prevProducts => [...prevProducts, newProduct]);
-      
-      // Update category cache
-      setProductsByCategory(prev => {
-        const updated = { ...prev };
-        const category = product.category as string;
-        
-        if (!updated[category]) {
-          updated[category] = [];
-        }
-        updated[category] = [...updated[category], newProduct];
-        return updated;
-      });
+      // Refresh products from Firestore to ensure everything is up to date
+      await fetchProducts();
       
       return newProduct;
     } catch (err: any) {
@@ -136,36 +182,15 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
         throw new Error('Product not found');
       }
       
+      console.log(`Updating product ${id} with:`, updates);
+      
       // Update in Firestore
       await firestoreAPI.updateProduct(id, updates);
+      console.log(`Product ${id} updated successfully`);
       
-      // Get the updated product
-      const updatedProduct = { ...existingProduct, ...updates };
+      // Refresh products from Firestore to ensure everything is up to date
+      await fetchProducts();
       
-      // Update local state
-      setProducts(prevProducts => 
-        prevProducts.map(p => p.id === id ? updatedProduct : p)
-      );
-      
-      // Handle category change if needed
-      if (updates.category && existingProduct.category !== updates.category) {
-        // Refetch products to ensure they're up to date
-        await fetchProducts();
-      } else {
-        // Just update the product in its existing category
-        setProductsByCategory(prev => {
-          const category = existingProduct.category;
-          if (category && prev[category]) {
-            return {
-              ...prev,
-              [category]: prev[category].map(p => 
-                p.id === id ? updatedProduct : p
-              )
-            };
-          }
-          return prev;
-        });
-      }
     } catch (err: any) {
       console.error('Error updating product:', err);
       setError(err.message || 'Failed to update product');
@@ -184,29 +209,15 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
         throw new Error('Product not found');
       }
       
+      console.log(`Deleting product ${id}`);
+      
       // Delete from Firestore
       await firestoreAPI.deleteProduct(id);
+      console.log(`Product ${id} deleted successfully`);
       
-      // Update local state
-      setProducts(prevProducts => prevProducts.filter(p => p.id !== id));
+      // Refresh products from Firestore to ensure everything is up to date
+      await fetchProducts();
       
-      // Update category cache
-      if (productToRemove.category) {
-        setProductsByCategory(prev => {
-          const updated = { ...prev };
-          if (updated[productToRemove.category]) {
-            updated[productToRemove.category] = updated[productToRemove.category].filter(
-              p => p.id !== id
-            );
-            
-            // Remove category array if empty
-            if (updated[productToRemove.category].length === 0) {
-              delete updated[productToRemove.category];
-            }
-          }
-          return updated;
-        });
-      }
     } catch (err: any) {
       console.error('Error removing product:', err);
       setError(err.message || 'Failed to delete product');

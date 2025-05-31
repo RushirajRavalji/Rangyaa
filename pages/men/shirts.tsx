@@ -15,21 +15,53 @@ export default function ShirtsPage() {
   const [shirtsProducts, setShirtsProducts] = useState<Product[]>([]);
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
   
-  // Fetch shirts products from Firebase
+  // Fetch shirts products on client side
   useEffect(() => {
     const fetchShirts = async () => {
       try {
         setLoading(true);
+        setError(null);
         
-        // Get shirts products from Firebase
-        const products = await firestoreAPI.getProductsByCategory('shirts');
+        // Get all products from Firebase
+        const allProducts = await firestoreAPI.getAllProducts();
+        console.log(`Fetched ${allProducts.length} total products, filtering for men's shirts`);
         
-        // Filter for men's shirts only
-        const mensShirts = products.filter(product => 
-          product.category.toLowerCase() === 'men' || 
-          product.category.toLowerCase() === 'mens'
-        );
+        // Improved filtering for men's shirts
+        const mensShirts = allProducts.filter(product => {
+          console.log(`Processing product: ${product.id} - ${product.name} - Category: ${product.category} - Subcategory: ${product.subcategory || 'none'} - Tags: ${product.tags?.join(', ') || 'none'}`);
+          
+          // Check if it's a men's product
+          const isMensProduct = product.category?.toLowerCase() === 'men' || 
+                               product.category?.toLowerCase() === 'mens' || 
+                               product.subcategory?.toLowerCase()?.includes('men') ||
+                               (product.tags && product.tags.some(tag => 
+                                 tag.toLowerCase() === 'men' || 
+                                 tag.toLowerCase() === 'mens' ||
+                                 tag.toLowerCase().startsWith('men-')
+                               ));
+          
+          // Check if it's a shirt
+          const isShirt = product.subcategory?.toLowerCase()?.includes('shirt') || 
+                         product.category?.toLowerCase() === 'shirts' || 
+                         product.category?.toLowerCase() === 'shirt' ||
+                         (product.tags && product.tags.some(tag => 
+                           tag.toLowerCase() === 'shirt' ||
+                           tag.toLowerCase().includes('shirt')
+                         ));
+          
+          // Must be both men's product and a shirt, but not a t-shirt
+          const isNotTShirt = !(product.subcategory?.toLowerCase()?.includes('t-shirt') ||
+                               (product.tags && product.tags.some(tag => 
+                                 tag.toLowerCase().includes('t-shirt')
+                               )));
+                               
+          // Log the filtering results
+          console.log(`Product ${product.name}: isMensProduct=${isMensProduct}, isShirt=${isShirt}, isNotTShirt=${isNotTShirt}`);
+          
+          return isMensProduct && isShirt && isNotTShirt;
+        });
         
+        console.log(`Found ${mensShirts.length} men's shirts after filtering`);
         setShirtsProducts(mensShirts);
         setLoading(false);
       } catch (err) {
@@ -63,16 +95,16 @@ export default function ShirtsPage() {
         <h1>Men's Shirts</h1>
 
         {loading ? (
-          <div style={{ textAlign: 'center', padding: '50px 0' }}>
-            <FaSpinner style={{ animation: 'spin 1s linear infinite' }} size={30} />
+          <div className={styles.loadingContainer}>
+            <FaSpinner className={styles.spinner} />
             <p>Loading products...</p>
           </div>
         ) : error ? (
-          <div style={{ textAlign: 'center', padding: '50px 0', color: '#721c24' }}>
+          <div className={styles.errorContainer}>
             <p>{error}</p>
           </div>
         ) : shirtsProducts.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '50px 0' }}>
+          <div className={styles.emptyContainer}>
             <p>No shirts products found. Please check back later.</p>
           </div>
         ) : (

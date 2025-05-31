@@ -106,7 +106,7 @@ export default function Home() {
   useEffect(() => {
     const interval = setInterval(() => {
       setActiveTestimonial((prev) => (prev + 1) % testimonials.length);
-    }, 5000);
+    }, 3000);
     
     return () => clearInterval(interval);
   }, []);
@@ -251,40 +251,58 @@ export default function Home() {
             <p>Read testimonials from our satisfied customers</p>
           </div>
           
-          <div className={styles.testimonialContainer}>
-            {testimonials.map((testimonial, index) => (
-              <div 
-                key={testimonial.id}
-                className={`${styles.testimonialCard} ${index === activeTestimonial ? styles.active : ''}`}
-              >
-                <div className={styles.testimonialContent}>
-                  <div className={styles.testimonialRating}>
-                    {[...Array(5)].map((_, i) => (
-                      <span key={i} className={i < testimonial.rating ? styles.filledStar : styles.emptyStar}>★</span>
-                    ))}
-                  </div>
-                  <p className={styles.testimonialText}>{testimonial.text}</p>
-                  <div className={styles.testimonialAuthor}>
-                    <div className={styles.authorAvatar}>
-                      {testimonial.author.charAt(0)}
+          <div className={styles.testimonialCarousel}>
+            <div className={styles.testimonialTrack} style={{ transform: `translateX(-${activeTestimonial * 100}%)` }}>
+              {testimonials.map((testimonial) => (
+                <div key={testimonial.id} className={styles.testimonialSlide}>
+                  <div className={styles.testimonialCard}>
+                    <div className={styles.testimonialRating}>
+                      {[...Array(5)].map((_, i) => (
+                        <span key={i} className={i < testimonial.rating ? styles.starFilled : styles.starEmpty}>★</span>
+                      ))}
                     </div>
-                    <div>
-                      <p className={styles.authorName}>{testimonial.author}</p>
-                      <p className={styles.authorLocation}>{testimonial.location}</p>
+                    <p className={styles.testimonialText}>{testimonial.text}</p>
+                    <div className={styles.testimonialAuthor}>
+                      <div className={styles.authorAvatar}>
+                        {testimonial.author.charAt(0)}
+                      </div>
+                      <div className={styles.authorInfo}>
+                        <p className={styles.authorName}>{testimonial.author}</p>
+                        <p className={styles.authorLocation}>{testimonial.location}</p>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
-            
-            <div className={styles.testimonialDots}>
-              {testimonials.map((_, index) => (
-                <span 
-                  key={index} 
-                  className={`${styles.dot} ${index === activeTestimonial ? styles.activeDot : ''}`}
-                  onClick={() => setActiveTestimonial(index)}
-                ></span>
               ))}
+            </div>
+            
+            <div className={styles.testimonialControls}>
+              <div className={styles.testimonialDots}>
+                {testimonials.map((_, index) => (
+                  <span 
+                    key={index} 
+                    className={`${styles.testimonialDot} ${index === activeTestimonial ? styles.active : ''}`}
+                    onClick={() => setActiveTestimonial(index)}
+                  ></span>
+                ))}
+              </div>
+              
+              <div className={styles.testimonialArrows}>
+                <button 
+                  className={styles.testimonialArrow} 
+                  onClick={() => setActiveTestimonial((prev) => (prev - 1 + testimonials.length) % testimonials.length)}
+                  aria-label="Previous testimonial"
+                >
+                  &#10094;
+                </button>
+                <button 
+                  className={styles.testimonialArrow} 
+                  onClick={() => setActiveTestimonial((prev) => (prev + 1) % testimonials.length)}
+                  aria-label="Next testimonial"
+                >
+                  &#10095;
+                </button>
+              </div>
             </div>
           </div>
         </div>

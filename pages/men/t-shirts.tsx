@@ -15,21 +15,49 @@ export default function TShirtsPage() {
   const [tshirtsProducts, setTshirtsProducts] = useState<Product[]>([]);
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
   
-  // Fetch t-shirts products from Firebase
+  // Fetch t-shirts products on client side
   useEffect(() => {
     const fetchTShirts = async () => {
       try {
         setLoading(true);
+        setError(null);
         
-        // Get t-shirts products from Firebase
-        const products = await firestoreAPI.getProductsByCategory('t-shirts');
+        // Get all products from Firebase
+        const allProducts = await firestoreAPI.getAllProducts();
+        console.log(`Fetched ${allProducts.length} total products, filtering for men's t-shirts`);
         
-        // Filter for men's t-shirts only
-        const mensTShirts = products.filter(product => 
-          product.category.toLowerCase() === 'men' || 
-          product.category.toLowerCase() === 'mens'
-        );
+        // Improved filtering for men's t-shirts
+        const mensTShirts = allProducts.filter(product => {
+          console.log(`Processing product: ${product.id} - ${product.name} - Category: ${product.category} - Subcategory: ${product.subcategory || 'none'} - Tags: ${product.tags?.join(', ') || 'none'}`);
+          
+          // Check if it's a men's product
+          const isMensProduct = product.category?.toLowerCase() === 'men' || 
+                               product.category?.toLowerCase() === 'mens' || 
+                               product.subcategory?.toLowerCase()?.includes('men') ||
+                               (product.tags && product.tags.some(tag => 
+                                 tag.toLowerCase() === 'men' || 
+                                 tag.toLowerCase() === 'mens' ||
+                                 tag.toLowerCase().startsWith('men-')
+                               ));
+          
+          // Check if it's a t-shirt
+          const isTShirt = product.subcategory?.toLowerCase()?.includes('t-shirt') || 
+                          product.category?.toLowerCase() === 't-shirts' ||
+                          product.category?.toLowerCase() === 't-shirt' ||
+                          (product.tags && product.tags.some(tag => 
+                            tag.toLowerCase() === 't-shirt' || 
+                            tag.toLowerCase() === 't-shirts' ||
+                            tag.toLowerCase().includes('t-shirt')
+                          ));
+          
+          // Log the filtering results
+          console.log(`Product ${product.name}: isMensProduct=${isMensProduct}, isTShirt=${isTShirt}`);
+          
+          // Must be both men's product and a t-shirt
+          return isMensProduct && isTShirt;
+        });
         
+        console.log(`Found ${mensTShirts.length} men's t-shirts after filtering`);
         setTshirtsProducts(mensTShirts);
         setLoading(false);
       } catch (err) {
@@ -63,16 +91,16 @@ export default function TShirtsPage() {
         <h1>Men's T-Shirts</h1>
 
         {loading ? (
-          <div style={{ textAlign: 'center', padding: '50px 0' }}>
-            <FaSpinner style={{ animation: 'spin 1s linear infinite' }} size={30} />
+          <div className={styles.loadingContainer}>
+            <FaSpinner className={styles.spinner} />
             <p>Loading products...</p>
           </div>
         ) : error ? (
-          <div style={{ textAlign: 'center', padding: '50px 0', color: '#721c24' }}>
+          <div className={styles.errorContainer}>
             <p>{error}</p>
           </div>
         ) : tshirtsProducts.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '50px 0' }}>
+          <div className={styles.emptyContainer}>
             <p>No t-shirts found. Please check back later.</p>
           </div>
         ) : (

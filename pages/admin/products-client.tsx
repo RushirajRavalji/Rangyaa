@@ -18,6 +18,7 @@ const defaultProductForm = {
   originalPrice: 0,
   discount: 0,
   category: '',
+  subcategory: '',
   stock: 0,
   sizes: ['S', 'M', 'L', 'XL'] as string[],
   colors: [] as { name: string; code: string }[],
@@ -32,10 +33,20 @@ const defaultProductForm = {
 const categories = [
   { id: 'men', name: 'Men' },
   { id: 'women', name: 'Women' },
+  { id: 'kids', name: 'Kids' },
+  { id: 'unisex', name: 'Unisex' }
+];
+
+// Available subcategories for the datalist
+const subcategories = [
   { id: 'jeans', name: 'Jeans' },
   { id: 'shirts', name: 'Shirts' },
   { id: 't-shirts', name: 'T-Shirts' },
+  { id: 'trousers', name: 'Trousers' },
   { id: 'jackets', name: 'Jackets' },
+  { id: 'sweaters', name: 'Sweaters' },
+  { id: 'hoodies', name: 'Hoodies' },
+  { id: 'joggers', name: 'Joggers' },
   { id: 'accessories', name: 'Accessories' }
 ];
 
@@ -131,11 +142,17 @@ export default function AdminProductsClient() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Prevent multiple submissions
+    if (loading) {
+      return;
+    }
+    
     // Validate form
     const errors: Record<string, string> = {};
     
     if (!productForm.name) errors.name = 'Product name is required';
     if (!productForm.category) errors.category = 'Category is required';
+    if (!productForm.subcategory) errors.subcategory = 'Subcategory is required';
     if (!productForm.description) errors.description = 'Description is required';
     if (productForm.price <= 0) errors.price = 'Price must be greater than 0';
     if (productForm.stock < 0) errors.stock = 'Stock cannot be negative';
@@ -146,18 +163,43 @@ export default function AdminProductsClient() {
       return;
     }
     
+    // Add or combine tags to include category and subcategory for better filtering
+    const updatedForm = { ...productForm };
+    
+    // Add tags for category and subcategory if they don't exist
+    if (!updatedForm.tags) {
+      updatedForm.tags = [];
+    }
+    
+    // Make sure category and subcategory are included in tags
+    if (updatedForm.category && !updatedForm.tags.includes(updatedForm.category)) {
+      updatedForm.tags.push(updatedForm.category);
+    }
+    
+    if (updatedForm.subcategory && !updatedForm.tags.includes(updatedForm.subcategory)) {
+      updatedForm.tags.push(updatedForm.subcategory);
+    }
+    
+    // Create combined tags like "men-shirts" for better filtering
+    const combinedTag = `${updatedForm.category}-${updatedForm.subcategory}`;
+    if (!updatedForm.tags.includes(combinedTag)) {
+      updatedForm.tags.push(combinedTag);
+    }
+    
     try {
       setLoading(true);
       setError(null);
       
+      console.log(`${isEditing ? 'Updating' : 'Adding'} product: ${updatedForm.name}`);
+      
       if (isEditing) {
-        await updateExistingProduct(productForm.id, productForm);
+        await updateExistingProduct(updatedForm.id, updatedForm);
         setSubmitStatus({
           type: 'success',
           message: 'Product updated successfully!'
         });
       } else {
-        await addNewProduct(productForm);
+        await addNewProduct(updatedForm);
         setSubmitStatus({
           type: 'success',
           message: 'Product added successfully!'
@@ -168,6 +210,9 @@ export default function AdminProductsClient() {
       resetForm();
       setIsAdding(false);
       setIsEditing(false);
+      
+      // Refresh products to ensure the UI is up to date
+      await refreshProducts();
       
       // Clear status message after 3 seconds
       setTimeout(() => {
@@ -248,25 +293,40 @@ export default function AdminProductsClient() {
     setProductForm(defaultProductForm as unknown as Product);
     setImagePreview(null);
     setFormErrors({});
-    setIsEditing(false);
-    if (formRef.current) formRef.current.reset();
-    if (fileInputRef.current) fileInputRef.current.value = '';
+    setSubmitStatus(null);
+    
+    // Clear file input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
   
-  // Handle edit product
+  // Handle editing a product
   const handleEditProduct = (product: Product) => {
-    setProductForm(product);
-    setImagePreview(product.image || null);
-    setIsAdding(true);
     setIsEditing(true);
+    setIsAdding(true);
+    
+    // Populate form with product data
+    setProductForm({
+      ...product,
+      // Ensure subcategory is properly set
+      subcategory: product.subcategory || '',
+      // Handle tags, sizes, and colors which could be missing or in wrong format
+      tags: Array.isArray(product.tags) ? product.tags : [],
+      sizes: Array.isArray(product.sizes) ? product.sizes : ['S', 'M', 'L', 'XL'],
+      colors: Array.isArray(product.colors) ? product.colors : []
+    });
+    
+    // Set image preview if available
+    if (product.image) {
+      setImagePreview(product.image);
+    }
     
     // Scroll to form
-    setTimeout(() => {
-      window.scrollTo({
-        top: 0,
-        behavior: 'smooth'
-      });
-    }, 100);
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
   };
   
   // Handle delete product
@@ -311,10 +371,21 @@ export default function AdminProductsClient() {
   };
   
   // Refresh products
-  const refreshProducts = () => {
-    setSearchTerm('');
-    setSortField('name');
-    setSortOrder('asc');
+  const refreshProducts = async () => {
+    try {
+      setLoading(true);
+      // Use the context function to refresh products from Firestore
+      await useProducts().refreshProducts();
+      // Reset search and sort
+      setSearchTerm('');
+      setSortField('name');
+      setSortOrder('asc');
+      console.log('Products refreshed from Firestore');
+    } catch (error) {
+      console.error('Error refreshing products:', error);
+    } finally {
+      setLoading(false);
+    }
   };
   
   // Sort icon component
@@ -477,6 +548,28 @@ export default function AdminProductsClient() {
                     ))}
                   </datalist>
                   {formErrors.category && <div className={styles.errorText}>{formErrors.category}</div>}
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label htmlFor="subcategory">
+                    Subcategory*
+                  </label>
+                  <input
+                    type="text"
+                    id="subcategory"
+                    name="subcategory"
+                    value={productForm.subcategory}
+                    onChange={handleChange}
+                    list="subcategories"
+                    className={formErrors.subcategory ? styles.errorInput : ''}
+                    placeholder="Select or enter subcategory"
+                  />
+                  <datalist id="subcategories">
+                    {subcategories.map((subcategory) => (
+                      <option key={subcategory.id} value={subcategory.id} />
+                    ))}
+                  </datalist>
+                  {formErrors.subcategory && <div className={styles.errorText}>{formErrors.subcategory}</div>}
                 </div>
 
                 <div className={styles.formGroup}>

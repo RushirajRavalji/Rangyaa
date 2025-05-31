@@ -43,6 +43,10 @@ const validateProduct = (product: Partial<Product>): string | null => {
     return 'Product category is required';
   }
   
+  if (!product.subcategory || typeof product.subcategory !== 'string') {
+    return 'Product subcategory is required';
+  }
+  
   if (!product.image || typeof product.image !== 'string') {
     return 'Product image is required';
   }
@@ -61,13 +65,38 @@ const cleanProductData = (product: Record<string, any>): Record<string, any> => 
         cleanedProduct[key] = Number(value);
       } else if (key === 'sizes' && typeof value === 'string') {
         cleanedProduct[key] = value.split(',').map((s: string) => s.trim()).filter(Boolean);
-      } else if (key === 'featured' && typeof value === 'string') {
-        cleanedProduct[key] = value === 'true';
+      } else if (key === 'featured' || key === 'new') {
+        cleanedProduct[key] = value === true || value === 'true';
+      } else if (key === 'category' || key === 'subcategory') {
+        // Normalize categories to lowercase
+        cleanedProduct[key] = String(value).toLowerCase().trim();
       } else {
         cleanedProduct[key] = value;
       }
     }
   });
+  
+  // Ensure there are tags for category and subcategory
+  if (!cleanedProduct.tags) {
+    cleanedProduct.tags = [];
+  }
+  
+  // Add category and subcategory to tags if they don't exist
+  if (cleanedProduct.category && !cleanedProduct.tags.includes(cleanedProduct.category)) {
+    cleanedProduct.tags.push(cleanedProduct.category);
+  }
+  
+  if (cleanedProduct.subcategory && !cleanedProduct.tags.includes(cleanedProduct.subcategory)) {
+    cleanedProduct.tags.push(cleanedProduct.subcategory);
+  }
+  
+  // Add combined tag (category-subcategory)
+  if (cleanedProduct.category && cleanedProduct.subcategory) {
+    const combinedTag = `${cleanedProduct.category}-${cleanedProduct.subcategory}`;
+    if (!cleanedProduct.tags.includes(combinedTag)) {
+      cleanedProduct.tags.push(combinedTag);
+    }
+  }
   
   // Add timestamps
   if (!cleanedProduct.createdAt) {
@@ -395,6 +424,7 @@ const invalidateProductCache = (productId: string, categoryId?: string) => {
 
 // Clear entire cache
 export const clearProductCache = () => {
+  console.log('Clearing product cache to force fresh data fetch');
   productCache.all = null;
   productCache.byId = {};
   productCache.byCategory = {};
@@ -586,19 +616,8 @@ export const addProduct = async (product: Omit<Product, 'id'>): Promise<Product>
       return newProductWithId;
     });
     
-    // Update cache with the new product
-    if (productCache.all) {
-      productCache.all.unshift(newProduct as Product);
-    }
-    
-    productCache.byId[newProduct.id] = newProduct as Product;
-    
-    if (newProduct.category) {
-      if (!productCache.byCategory[newProduct.category]) {
-        productCache.byCategory[newProduct.category] = [];
-      }
-      productCache.byCategory[newProduct.category].unshift(newProduct as Product);
-    }
+    // Clear cache completely to ensure fresh data on next fetch
+    clearProductCache();
     
     console.log('Product added successfully with ID:', newProduct.id);
     return newProduct as Product;
@@ -611,6 +630,7 @@ export const addProduct = async (product: Omit<Product, 'id'>): Promise<Product>
 // Update a product
 export const updateProduct = async (id: string, product: Partial<Product>): Promise<void> => {
   try {
+    console.log(`Updating product ${id} with:`, product);
     const productDoc = doc(db, 'products', id);
     
     // Get existing product to check if category is changing
@@ -669,46 +689,9 @@ export const updateProduct = async (id: string, product: Partial<Product>): Prom
       }
     });
     
-    // Update cache
-    if (productCache.byId[id]) {
-      const updatedProduct = { ...productCache.byId[id], ...product };
-      productCache.byId[id] = updatedProduct;
-      
-      // Update in all products cache if it exists
-      if (productCache.all) {
-        const index = productCache.all.findIndex(p => p.id === id);
-        if (index >= 0) {
-          productCache.all[index] = updatedProduct;
-        }
-      }
-      
-      // Handle category change in cache
-      if (product.category && existingProduct.category !== product.category) {
-        // Remove from old category cache
-        if (productCache.byCategory[existingProduct.category]) {
-          productCache.byCategory[existingProduct.category] = productCache.byCategory[existingProduct.category].filter(
-            p => p.id !== id
-          );
-        }
-        
-        // Add to new category cache
-        if (!productCache.byCategory[product.category]) {
-          productCache.byCategory[product.category] = [];
-        }
-        productCache.byCategory[product.category].push(updatedProduct);
-      } else if (product.category) {
-        // Update in same category
-        if (productCache.byCategory[product.category]) {
-          const catIndex = productCache.byCategory[product.category].findIndex(p => p.id === id);
-          if (catIndex >= 0) {
-            productCache.byCategory[product.category][catIndex] = updatedProduct;
-          }
-        }
-      }
-    } else {
-      // If not in cache, invalidate all cache to force refresh
-      clearProductCache();
-    }
+    // Clear cache completely to ensure fresh data on next fetch
+    clearProductCache();
+    console.log(`Product ${id} updated successfully`);
     
   } catch (error) {
     console.error('Error updating product:', error);
@@ -719,6 +702,7 @@ export const updateProduct = async (id: string, product: Partial<Product>): Prom
 // Delete a product
 export const deleteProduct = async (id: string): Promise<void> => {
   try {
+    console.log(`Deleting product ${id}`);
     const productDoc = doc(db, 'products', id);
     
     // Get product to find its category and image URL
@@ -763,8 +747,9 @@ export const deleteProduct = async (id: string): Promise<void> => {
       }
     });
     
-    // Update cache
-    invalidateProductCache(id, productData.category);
+    // Clear cache completely to ensure fresh data on next fetch
+    clearProductCache();
+    console.log(`Product ${id} deleted successfully`);
     
   } catch (error) {
     console.error('Error deleting product:', error);
