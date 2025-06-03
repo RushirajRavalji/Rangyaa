@@ -81,6 +81,23 @@
   color: #e74c3c;
 }
 
+.retryButton {
+  margin-top: 15px;
+  padding: 10px 20px;
+  background-color: #3498db;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.retryButton:hover {
+  background-color: #2980b9;
+  transform: translateY(-2px);
+}
+
 .viewAllContainer {
   text-align: center;
   margin-top: 40px;

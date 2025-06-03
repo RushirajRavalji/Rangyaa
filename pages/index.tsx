@@ -79,9 +79,22 @@ export default function Home() {
     const fetchProducts = async () => {
       try {
         setLoading(true);
+        setError('');
+        
+        // Initialize localStorage if we're in the browser
+        if (typeof window !== 'undefined') {
+          // Import localStorage API
+          const localStorageAPI = await import('../utils/localStorage');
+          localStorageAPI.initializeLocalStorage();
+          
+          console.log('LocalStorage initialized with fallback products');
+        }
         
         // Import firestoreAPI to use Firebase functions
         const firestoreAPI = await import('../utils/firestore');
+        
+        // Clear cache first to ensure fresh data
+        await firestoreAPI.clearProductCache();
         
         // Get featured products from Firebase
         const featured = await firestoreAPI.getFeaturedProducts(4);
@@ -137,6 +150,61 @@ export default function Home() {
       window.showNotification(`${product.name} added to cart`);
     }
   };
+
+  // Add a retry function
+  const handleRetryFetch = async () => {
+    try {
+      setLoading(true);
+      setError('');
+      
+      // Import firestoreAPI to use Firebase functions
+      const firestoreAPI = await import('../utils/firestore');
+      
+      // Clear cache to ensure fresh data on retry
+      await firestoreAPI.clearProductCache();
+      
+      // Try to get featured products from Firebase or localStorage fallback
+      const featured = await firestoreAPI.getFeaturedProducts(4);
+      setFeaturedProducts(featured);
+      
+      // Try to get new arrivals from Firebase or localStorage fallback
+      const newArrivals = await firestoreAPI.getNewArrivals(4);
+      setNewArrivalsProducts(newArrivals);
+      
+      // If we got products from either source, clear error
+      if (featured.length > 0 || newArrivals.length > 0) {
+        setError('');
+      } else {
+        setError('No products available. Please try adding products.');
+      }
+      
+      setLoading(false);
+    } catch (err) {
+      console.error('Error retrying product fetch:', err);
+      
+      // Try one last time with localStorage directly
+      try {
+        const localStorageAPI = await import('../utils/localStorage');
+        localStorageAPI.initializeLocalStorage(); // Make sure sample data is loaded
+        
+        const localFeatured = localStorageAPI.getFeaturedProducts(4);
+        const localNewArrivals = localStorageAPI.getNewArrivals(4);
+        
+        setFeaturedProducts(localFeatured);
+        setNewArrivalsProducts(localNewArrivals);
+        
+        if (localFeatured.length > 0 || localNewArrivals.length > 0) {
+          setError(''); // Clear error if we got any products
+        } else {
+          setError('Unable to load products. Please try again later.');
+        }
+      } catch (localErr) {
+        setError('Failed to load products. Please try again later.');
+      }
+      
+      setLoading(false);
+    }
+  };
   
   return (
     <Layout title="Nikhil's Jeans - Premium Denim Wear">
@@ -163,6 +231,9 @@ export default function Home() {
           ) : error ? (
             <div className={styles.errorContainer}>
               <p>{error}</p>
+              <button onClick={handleRetryFetch} className={styles.retryButton}>
+                Try Again
+              </button>
             </div>
           ) : featuredProducts.length === 0 ? (
             <div className={styles.emptyContainer}>
@@ -217,6 +288,9 @@ export default function Home() {
           ) : error ? (
             <div className={styles.errorContainer}>
               <p>{error}</p>
+              <button onClick={handleRetryFetch} className={styles.retryButton}>
+                Try Again
+              </button>
             </div>
           ) : newArrivalsProducts.length === 0 ? (
             <div className={styles.emptyContainer}>

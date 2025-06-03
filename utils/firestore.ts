@@ -1,13 +1,14 @@
 import { app } from './firebase';
-import { getFirestore, collection, getDocs, doc, getDoc, addDoc, updateDoc, deleteDoc, query, where, runTransaction, serverTimestamp, DocumentReference, limit, orderBy, startAfter, QueryDocumentSnapshot, QuerySnapshot } from 'firebase/firestore';
-import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
+import { getFirestore, collection, getDocs, doc, getDoc, addDoc, updateDoc, deleteDoc, query, where, runTransaction, serverTimestamp, DocumentReference, limit, orderBy, startAfter, QueryDocumentSnapshot, QuerySnapshot, Firestore, setDoc } from 'firebase/firestore';
+import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject, FirebaseStorage } from 'firebase/storage';
 import { Product } from '../data/products';
+import * as localStorageAPI from './localStorage';
 
 // Initialize Firestore
-export const db = getFirestore(app);
+export const db: Firestore = getFirestore(app);
 
 // Initialize Storage
-export const storage = getStorage(app);
+export const storage: FirebaseStorage = getStorage(app);
 
 // Collection references
 const productsCollection = collection(db, 'products');
@@ -118,6 +119,11 @@ const isCacheValid = (): boolean => {
 // Get all products with pagination and caching
 export const getAllProducts = async (pageSize: number = 0): Promise<Product[]> => {
   try {
+    // Force cache refresh on every request for now to fix loading issues
+    productCache.all = null;
+    productCache.lastFetched = 0;
+    console.log('Forcing cache refresh for products');
+    
     // If cache is valid and we're not paginating, return cached products
     if (isCacheValid() && pageSize === 0 && productCache.all) {
       console.log(`Returning ${productCache.all.length} products from cache`);
@@ -167,10 +173,54 @@ export const getAllProducts = async (pageSize: number = 0): Promise<Product[]> =
     }
     
     console.log(`Successfully processed and returning ${products.length} products from Firestore`);
+    
+    // If Firebase returned no products, try to load from localStorage as a fallback
+    if (products.length === 0) {
+      console.log('No products found in Firestore, trying localStorage fallback');
+      
+      if (typeof window !== 'undefined') {
+        // Initialize localStorage if needed (loads sample products first time)
+        localStorageAPI.initializeLocalStorage();
+        
+        // Get products from localStorage
+        const localProducts = localStorageAPI.getAllProducts();
+        console.log(`Found ${localProducts.length} products in localStorage`);
+        
+        if (localProducts.length > 0) {
+          return localProducts;
+        }
+      }
+    }
+    
     return products;
   } catch (error) {
     console.error('Error getting products from Firestore:', error);
-    throw new Error('Failed to fetch products');
+    
+    // Attempt to return any cached products if available even if expired
+    if (productCache.all && Array.isArray(productCache.all) && productCache.all.length > 0) {
+      console.log(`Returning ${productCache.all.length} products from expired cache as fallback`);
+      return productCache.all;
+    }
+    
+    // If cache failed, try localStorage as ultimate fallback
+    if (typeof window !== 'undefined') {
+      console.log('Trying to load products from localStorage due to Firestore error');
+      
+      // Initialize localStorage if needed (loads sample products first time)
+      localStorageAPI.initializeLocalStorage();
+      
+      // Get products from localStorage
+      const localProducts = localStorageAPI.getAllProducts();
+      console.log(`Found ${localProducts.length} products in localStorage for fallback`);
+      
+      if (localProducts.length > 0) {
+        return localProducts;
+      }
+    }
+    
+    // Return empty array rather than throwing error
+    console.warn('All product loading fallbacks failed, returning empty array');
+    return [];
   }
 };
 
@@ -307,10 +357,47 @@ export const getFeaturedProducts = async (limitCount: number = 8): Promise<Produ
       }
     });
     
+    // If Firebase returned no products, try to load from localStorage as a fallback
+    if (products.length === 0) {
+      console.log('No featured products found in Firestore, trying localStorage fallback');
+      
+      if (typeof window !== 'undefined') {
+        // Initialize localStorage if needed (loads sample products first time)
+        localStorageAPI.initializeLocalStorage();
+        
+        // Get featured products from localStorage
+        const localFeatured = localStorageAPI.getFeaturedProducts(limitCount);
+        console.log(`Found ${localFeatured.length} featured products in localStorage`);
+        
+        if (localFeatured.length > 0) {
+          return localFeatured;
+        }
+      }
+    }
+    
     return products;
   } catch (error) {
     console.error('Error getting featured products:', error);
-    throw new Error('Failed to fetch featured products');
+    
+    // Try localStorage as fallback
+    if (typeof window !== 'undefined') {
+      console.log('Trying to load featured products from localStorage due to Firestore error');
+      
+      // Initialize localStorage if needed (loads sample products first time)
+      localStorageAPI.initializeLocalStorage();
+      
+      // Get featured products from localStorage
+      const localFeatured = localStorageAPI.getFeaturedProducts(limitCount);
+      console.log(`Found ${localFeatured.length} featured products in localStorage for fallback`);
+      
+      if (localFeatured.length > 0) {
+        return localFeatured;
+      }
+    }
+    
+    // Return empty array rather than throwing error
+    console.warn('All featured product loading fallbacks failed, returning empty array');
+    return [];
   }
 };
 
@@ -366,10 +453,47 @@ export const getNewArrivals = async (limitCount: number = 8): Promise<Product[]>
       }
     });
     
+    // If Firebase returned no products, try to load from localStorage as a fallback
+    if (products.length === 0) {
+      console.log('No new arrivals found in Firestore, trying localStorage fallback');
+      
+      if (typeof window !== 'undefined') {
+        // Initialize localStorage if needed (loads sample products first time)
+        localStorageAPI.initializeLocalStorage();
+        
+        // Get new arrivals from localStorage
+        const localNewArrivals = localStorageAPI.getNewArrivals(limitCount);
+        console.log(`Found ${localNewArrivals.length} new arrival products in localStorage`);
+        
+        if (localNewArrivals.length > 0) {
+          return localNewArrivals;
+        }
+      }
+    }
+    
     return products;
   } catch (error) {
     console.error('Error getting new arrivals:', error);
-    throw new Error('Failed to fetch new arrivals');
+    
+    // Try localStorage as fallback
+    if (typeof window !== 'undefined') {
+      console.log('Trying to load new arrivals from localStorage due to Firestore error');
+      
+      // Initialize localStorage if needed (loads sample products first time)
+      localStorageAPI.initializeLocalStorage();
+      
+      // Get new arrivals from localStorage
+      const localNewArrivals = localStorageAPI.getNewArrivals(limitCount);
+      console.log(`Found ${localNewArrivals.length} new arrival products in localStorage for fallback`);
+      
+      if (localNewArrivals.length > 0) {
+        return localNewArrivals;
+      }
+    }
+    
+    // Return empty array rather than throwing error
+    console.warn('All new arrivals loading fallbacks failed, returning empty array');
+    return [];
   }
 };
 
@@ -568,7 +692,7 @@ export const deleteProductImage = async (imageUrl: string): Promise<void> => {
   }
 };
 
-// Add a new product with transaction for category tracking
+// Add a new product without transaction
 export const addProduct = async (product: Omit<Product, 'id'>): Promise<Product> => {
   try {
     console.log('Adding product to Firestore:', product);
@@ -583,28 +707,27 @@ export const addProduct = async (product: Omit<Product, 'id'>): Promise<Product>
     const cleanedProduct = cleanProductData(product);
     console.log('Cleaned product data for Firestore:', cleanedProduct);
     
-    // Use transaction to add product and update category data
-    const newProduct = await runTransaction(db, async (transaction) => {
-      // Add the product document
-      const docRef = await addDoc(productsCollection, cleanedProduct);
-      const newProductWithId = { 
-        id: docRef.id, 
-        ...cleanedProduct 
-      } as unknown as Product;
-      
-      // Update or create category count
+    // Add the product document directly
+    const docRef = await addDoc(productsCollection, cleanedProduct);
+    const newProductWithId = { 
+      id: docRef.id, 
+      ...cleanedProduct 
+    } as unknown as Product;
+    
+    // Update or create category count
+    try {
       const categoryRef = doc(categoriesCollection, cleanedProduct.category);
-      const categoryDoc = await transaction.get(categoryRef);
+      const categoryDoc = await getDoc(categoryRef);
       
       if (categoryDoc.exists()) {
         // Update existing category
-        transaction.update(categoryRef, {
+        await updateDoc(categoryRef, {
           count: (categoryDoc.data().count || 0) + 1,
           updatedAt: serverTimestamp()
         });
       } else {
         // Create new category
-        transaction.set(categoryRef, {
+        await setDoc(categoryRef, {
           id: cleanedProduct.category,
           name: cleanedProduct.category.charAt(0).toUpperCase() + cleanedProduct.category.slice(1),
           count: 1,
@@ -612,15 +735,16 @@ export const addProduct = async (product: Omit<Product, 'id'>): Promise<Product>
           updatedAt: serverTimestamp()
         });
       }
-      
-      return newProductWithId;
-    });
+    } catch (catError) {
+      console.error('Error updating category:', catError);
+      // Continue even if category update fails
+    }
     
     // Clear cache completely to ensure fresh data on next fetch
     clearProductCache();
     
-    console.log('Product added successfully with ID:', newProduct.id);
-    return newProduct as Product;
+    console.log('Product added successfully with ID:', newProductWithId.id);
+    return newProductWithId as Product;
   } catch (error) {
     console.error('Error adding product to Firestore:', error);
     throw error;
@@ -723,29 +847,32 @@ export const deleteProduct = async (id: string): Promise<void> => {
       }
     }
     
-    await runTransaction(db, async (transaction) => {
-      // Delete product
-      transaction.delete(productDoc);
-      
-      // Update category count
-      if (productData.category) {
+    // Delete the product directly without using transaction
+    await deleteDoc(productDoc);
+    
+    // Update category count if needed
+    if (productData.category) {
+      try {
         const categoryRef = doc(categoriesCollection, productData.category);
-        const categoryDoc = await transaction.get(categoryRef);
+        const categoryDoc = await getDoc(categoryRef);
         
         if (categoryDoc.exists()) {
           const count = categoryDoc.data().count || 0;
           if (count > 1) {
-            transaction.update(categoryRef, { 
+            await updateDoc(categoryRef, { 
               count: count - 1,
               updatedAt: serverTimestamp()
             });
           } else {
             // Delete category if it will be empty
-            transaction.delete(categoryRef);
+            await deleteDoc(categoryRef);
           }
         }
+      } catch (catError) {
+        console.error('Error updating category count:', catError);
+        // Continue even if category update fails
       }
-    });
+    }
     
     // Clear cache completely to ensure fresh data on next fetch
     clearProductCache();

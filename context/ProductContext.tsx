@@ -120,6 +120,10 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
       const fetchedProducts = await firestoreAPI.getAllProducts();
       console.log(`Fetched ${fetchedProducts.length} products from Firestore`);
       
+      if (fetchedProducts.length === 0) {
+        console.warn("Warning: Received empty products array from Firestore");
+      }
+      
       // Get categories from Firestore
       // This is handled automatically by the Firestore API
       
@@ -128,7 +132,22 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
       
     } catch (err: any) {
       console.error('Error fetching products:', err);
-      setError(err.message || 'Failed to load products. Please try again later.');
+      
+      // Try once more after a short delay
+      try {
+        console.log('Retrying product fetch after error...');
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        
+        const retryProducts = await firestoreAPI.getAllProducts();
+        console.log(`Retry fetched ${retryProducts.length} products`);
+        
+        setProducts(retryProducts);
+        organizeProductsByCategory(retryProducts);
+        setError(null); // Clear error if retry succeeds
+      } catch (retryErr: any) {
+        console.error('Retry also failed:', retryErr);
+        setError(retryErr.message || 'Failed to load products. Please try again later.');
+      }
     } finally {
       setLoading(false);
     }

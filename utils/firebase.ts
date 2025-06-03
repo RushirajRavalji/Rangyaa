@@ -1,8 +1,8 @@
 // Import the functions you need from the SDKs you need
-import { initializeApp, getApps, getApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-import { getFirestore } from "firebase/firestore";
-import { getStorage } from "firebase/storage";
+import { initializeApp, getApps, getApp, FirebaseApp } from "firebase/app";
+import { getAnalytics, Analytics } from "firebase/analytics";
+import { getFirestore, Firestore } from "firebase/firestore";
+import { getStorage, FirebaseStorage } from "firebase/storage";
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -19,15 +19,38 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase - check if already initialized
-const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+let app: FirebaseApp;
+try {
+  app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+  console.log("Firebase initialized successfully");
+} catch (error) {
+  console.error("Error initializing Firebase:", error);
+  // Initialize with a fallback in case there was an error
+  app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+}
 
 // Initialize Analytics only on client side
-const analytics = typeof window !== 'undefined' ? getAnalytics(app) : null;
+let analytics: Analytics | null = null;
+try {
+  analytics = typeof window !== 'undefined' ? getAnalytics(app) : null;
+} catch (error) {
+  console.error("Error initializing Firebase Analytics:", error);
+}
 
 // Initialize Firestore
-const db = typeof window !== 'undefined' ? getFirestore(app) : null;
+let db: Firestore | null = null;
+try {
+  db = typeof window !== 'undefined' ? getFirestore(app) : null;
+} catch (error) {
+  console.error("Error initializing Firestore:", error);
+}
 
 // Initialize Storage
-const storage = typeof window !== 'undefined' ? getStorage(app) : null;
+let storage: FirebaseStorage | null = null;
+try {
+  storage = typeof window !== 'undefined' ? getStorage(app) : null;
+} catch (error) {
+  console.error("Error initializing Firebase Storage:", error);
+}
 
 export { app, analytics, db, storage }; 

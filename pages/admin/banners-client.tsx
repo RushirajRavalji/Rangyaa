@@ -11,14 +11,10 @@ import { uploadBannerImage } from '../../utils/firebaseStorage';
 // Admin email for authorization
 const ADMIN_EMAIL = 'driger.ray.dranzer@gmail.com';
 
-// Define banner form type
+// Define banner form type (simplified)
 interface BannerFormData {
   page: string;
   imageUrl: string;
-  // These fields are kept in the interface but not shown in the UI
-  title: string;
-  subtitle: string;
-  textColor: string;
   order: number;
 }
 
@@ -26,10 +22,6 @@ interface BannerFormData {
 const defaultBannerForm: BannerFormData = {
   page: 'home',
   imageUrl: '',
-  // Default values for fields that are no longer in the UI
-  title: '',
-  subtitle: '',
-  textColor: '#ffffff',
   order: 1
 };
 
@@ -63,7 +55,8 @@ export default function AdminBannersClient() {
     addNewBanner,
     updateExistingBanner,
     removeBanner,
-    refreshBanners
+    refreshBanners,
+    forceRefreshBanners
   } = useBanners();
 
   // State variables
@@ -108,15 +101,6 @@ export default function AdminBannersClient() {
           return true;
         }
         
-        // Search in title and subtitle (might be undefined)
-        if (banner.title && banner.title.toLowerCase().includes(searchLower)) {
-          return true;
-        }
-        
-        if (banner.subtitle && banner.subtitle.toLowerCase().includes(searchLower)) {
-          return true;
-        }
-        
         return false;
       })
       .sort((a, b) => {
@@ -142,7 +126,7 @@ export default function AdminBannersClient() {
 
   // Handle form input changes
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value, type } = e.target;
+    const { name, value } = e.target;
     
     if (name === 'order') {
       const numValue = parseInt(value) || 0;
@@ -176,10 +160,6 @@ export default function AdminBannersClient() {
           setBannerForm(prev => ({ 
             ...prev, 
             imageUrl: existingBanner.imageUrl,
-            // Keep these values for consistency
-            title: existingBanner.title || '',
-            subtitle: existingBanner.subtitle || '',
-            textColor: existingBanner.textColor || '#ffffff',
             order: existingBanner.order || 1
           }));
         }
@@ -205,67 +185,43 @@ export default function AdminBannersClient() {
 
     try {
       setIsUploading(true);
-      setUploadProgress(0);
-      setSubmitStatus(null); // Clear any previous status
+      setUploadProgress(10);
+      setSubmitStatus({ type: 'info', message: 'Uploading image...' });
 
-      // Simulate progress (in a real app, you'd use Firebase's upload progress)
-      let progressInterval = setInterval(() => {
-        setUploadProgress(prev => {
-          if (prev >= 90) {
-            clearInterval(progressInterval);
-            return 90;
-          }
-          return prev + 10;
-        });
-      }, 200);
-
-      // Upload to Firebase Storage
+      console.log('Uploading banner image:', selectedFile.name);
+      
+      // Upload the image and get the URL
       const imageUrl = await uploadBannerImage(selectedFile);
+      console.log('Image uploaded successfully, URL:', imageUrl);
       
-      // Update form with the new image URL
+      // Set the image URL in the form
       setBannerForm(prev => ({ ...prev, imageUrl }));
-      
-      // Clear progress interval and set to 100%
-      clearInterval(progressInterval);
       setUploadProgress(100);
+      setSubmitStatus({ type: 'success', message: 'Image uploaded successfully!' });
       
-      // Show success message
-      setSubmitStatus({
-        type: 'success',
-        message: 'Banner image uploaded successfully!'
-      });
+      // Clear any image URL error
+      setFormErrors(prev => ({ ...prev, imageUrl: '' }));
       
-      // Reset after a short delay
+      // Clear the file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+      
+      // Clear the selected file after a short delay
       setTimeout(() => {
-        setUploadProgress(0);
-        setIsUploading(false);
         setSelectedFile(null);
-        if (fileInputRef.current) {
-          fileInputRef.current.value = '';
-        }
-        
-        // Clear success message
-        setTimeout(() => {
-          setSubmitStatus(null);
-        }, 2000);
-      }, 1000);
-      
+        setUploadProgress(0);
+        setSubmitStatus(null);
+      }, 2000);
     } catch (error) {
-      console.error('Error uploading banner image:', error);
-      
-      // No need to clear interval here since it won't be defined if there's an error before it's created
-      
-      // Set specific error message
-      const errorMessage = error instanceof Error ? error.message : 'Failed to upload image. Please try again.';
-      setFormErrors(prev => ({ ...prev, imageUrl: errorMessage }));
-      
-      setSubmitStatus({
-        type: 'error',
-        message: errorMessage
+      console.error('Error uploading image:', error);
+      setSubmitStatus({ 
+        type: 'error', 
+        message: error instanceof Error ? error.message : 'Failed to upload image' 
       });
-      
-      setIsUploading(false);
       setUploadProgress(0);
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -285,13 +241,10 @@ export default function AdminBannersClient() {
     }
     
     try {
-      // Create a complete banner object with default values for fields not in the UI
+      // Create a complete banner object
       const completeFormData = {
         page: bannerForm.page,
         imageUrl: bannerForm.imageUrl,
-        title: bannerForm.title || '',
-        subtitle: bannerForm.subtitle || '',
-        textColor: bannerForm.textColor || '#ffffff',
         order: bannerForm.order || 1
       };
       
@@ -324,7 +277,7 @@ export default function AdminBannersClient() {
       
       resetForm();
       // Refresh the banners list to show the updated data
-      refreshBanners();
+      await forceRefreshBanners();
     } catch (error) {
       setSubmitStatus({
         type: 'error',
@@ -358,10 +311,6 @@ export default function AdminBannersClient() {
     setBannerForm({
       page: banner.page,
       imageUrl: banner.imageUrl,
-      // Keep these values but they're not shown in the UI
-      title: banner.title || '',
-      subtitle: banner.subtitle || '',
-      textColor: banner.textColor || '#ffffff',
       order: banner.order || 1
     });
     
@@ -390,6 +339,9 @@ export default function AdminBannersClient() {
         if (previewBanner && previewBanner.id === id) {
           setPreviewBanner(null);
         }
+        
+        // Force refresh banners to update UI
+        await forceRefreshBanners();
         
         showActionMessage('Banner deleted successfully', 'success');
       } catch (error) {

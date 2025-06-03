@@ -4,7 +4,8 @@ import { Product } from '../data/products';
 const STORAGE_KEYS = {
   PRODUCTS: 'rangya_products',
   CATEGORIES: 'rangya_categories',
-  BANNERS: 'rangya_banners'
+  BANNERS: 'rangya_banners',
+  DEMO_DATA_LOADED: 'rangya_demo_data_loaded'
 };
 
 // Type definitions
@@ -20,9 +21,6 @@ export interface Banner {
   id: string;
   page: string;
   imageUrl: string;
-  title: string;
-  subtitle: string;
-  textColor: string;
   order: number;
   createdAt: string;
   updatedAt: string;
@@ -31,6 +29,15 @@ export interface Banner {
 // Helper to generate unique IDs
 const generateId = (): string => {
   return Date.now().toString(36) + Math.random().toString(36).substring(2);
+};
+
+// Initialize localStorage without loading sample products
+export const initializeLocalStorage = (): void => {
+  try {
+    console.log('Initializing localStorage');
+  } catch (error) {
+    console.error('Error initializing localStorage:', error);
+  }
 };
 
 // Get all products from localStorage
@@ -263,19 +270,14 @@ export const addBanner = (banner: Omit<Banner, 'id' | 'createdAt' | 'updatedAt'>
       throw new Error('Missing required banner fields');
     }
 
-    // Check if a banner already exists for this page
-    const existingBanners = getAllBanners();
-    const existingBanner = existingBanners.find(b => b.page === banner.page);
-    
-    // If a banner already exists for this page, update it instead of creating a new one
-    if (existingBanner) {
-      updateBanner(existingBanner.id, banner);
-      return { ...existingBanner, ...banner, updatedAt: new Date().toISOString() };
-    }
-
     // Generate ID and timestamps
     const id = generateId();
     const timestamp = new Date().toISOString();
+    
+    // Ensure order is set
+    if (banner.order === undefined) {
+      banner.order = 0;
+    }
     
     const newBanner: Banner = {
       ...banner,
@@ -285,6 +287,7 @@ export const addBanner = (banner: Omit<Banner, 'id' | 'createdAt' | 'updatedAt'>
     };
     
     // Save to localStorage
+    const existingBanners = getAllBanners();
     const updatedBanners = [...existingBanners, newBanner];
     localStorage.setItem(STORAGE_KEYS.BANNERS, JSON.stringify(updatedBanners));
     
@@ -339,7 +342,7 @@ export const deleteBanner = (id: string): void => {
   }
 };
 
-// Mock image upload function that returns a data URL
+// Enhanced image upload function that returns a data URL
 export const uploadProductImage = async (file: File): Promise<string> => {
   return new Promise((resolve, reject) => {
     try {
@@ -362,4 +365,28 @@ export const uploadProductImage = async (file: File): Promise<string> => {
       reject(error);
     }
   });
+};
+
+// Method to clear all products
+export const clearAllProducts = (): void => {
+  try {
+    localStorage.removeItem(STORAGE_KEYS.PRODUCTS);
+    localStorage.removeItem(STORAGE_KEYS.CATEGORIES);
+    console.log('All products and categories have been cleared');
+  } catch (error) {
+    console.error('Error clearing products:', error);
+  }
+};
+
+// Get featured products
+export const getFeaturedProducts = (limit: number = 8): Product[] => {
+  try {
+    const products = getAllProducts();
+    return products
+      .filter(product => product.featured)
+      .slice(0, limit);
+  } catch (error) {
+    console.error('Error getting featured products:', error);
+    return [];
+  }
 }; 

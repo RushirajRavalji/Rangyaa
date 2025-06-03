@@ -30,9 +30,6 @@ export interface FirebaseBanner {
   id: string;
   page: string;
   imageUrl: string;
-  title: string;
-  subtitle: string;
-  textColor: string;
   order: number;
   createdAt: any; // Firestore timestamp
   updatedAt: any; // Firestore timestamp

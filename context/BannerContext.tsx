@@ -17,6 +17,7 @@ interface BannerContextProps {
   updateExistingBanner: (id: string, updates: Partial<FirebaseBanner>) => Promise<void>;
   removeBanner: (id: string) => Promise<void>;
   refreshBanners: () => Promise<void>;
+  forceRefreshBanners: () => Promise<void>;
 }
 
 const BannerContext = createContext<BannerContextProps | undefined>(undefined);
@@ -126,6 +127,14 @@ export function BannerProvider({ children }: { children: React.ReactNode }) {
     await loadBanners();
   }, [loadBanners]);
 
+  // Force refresh banners (clears cache and reloads)
+  const forceRefreshBanners = useCallback(async () => {
+    console.log('Forcing banner refresh and clearing cache');
+    setBanners([]);
+    setLastRefreshed(0);
+    await loadBanners();
+  }, [loadBanners]);
+
   // Memoize the context value to prevent unnecessary re-renders
   const contextValue = useMemo(() => ({
     banners,
@@ -135,7 +144,8 @@ export function BannerProvider({ children }: { children: React.ReactNode }) {
     addNewBanner,
     updateExistingBanner,
     removeBanner,
-    refreshBanners
+    refreshBanners,
+    forceRefreshBanners
   }), [
     banners,
     loading,
@@ -144,7 +154,8 @@ export function BannerProvider({ children }: { children: React.ReactNode }) {
     addNewBanner,
     updateExistingBanner,
     removeBanner,
-    refreshBanners
+    refreshBanners,
+    forceRefreshBanners
   ]);
 
   return (
